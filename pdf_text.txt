@@ -1,0 +1,2515 @@
+Step 1: The Main Door to Our Robot
+Factory
+Explaining the Package Entry Point for 6th Graders
+Training Data Bot Tutorial
+July 4, 2025
+Contents
+1 Imagine This: You’re Building a Robot Factory! 6
+2 What is this __init__.py file? 6
+2.1 Just like at Disneyland... . . . . . . . . . . . . . . . . . . . . . . . . . . . 6
+3 Let’s Break Down Each Part (Super Simple!) 6
+3.1 Part 1: The Welcome Sign . . . . . . . . . . . . . . . . . . . . . . . . . . 6
+3.2 Part 2: Factory Information Card . . . . . . . . . . . . . . . . . . . . . . 7
+3.2.1 Why do we need this? . . . . . . . . . . . . . . . . . . . . . . . . 7
+4 Part 3: Bringing All Our Tools to the Front Desk 7
+4.1 Getting Our Core Tools Ready . . . . . . . . . . . . . . . . . . . . . . . 7
+4.2 Getting Our Main Robot . . . . . . . . . . . . . . . . . . . . . . . . . . . 8
+4.2.1 Think of it like: . . . . . . . . . . . . . . . . . . . . . . . . . . . . 8
+4.3 Getting Our Specialized Workers . . . . . . . . . . . . . . . . . . . . . . 8
+4.3.1 These are like specialized workers in our factory: . . . . . . . . . . 9
+4.4 Getting Our Support Services . . . . . . . . . . . . . . . . . . . . . . . . 9
+5 Part 4: The “What Customers Can Buy” List 10
+5.1 This is like a SHOPPING LIST at a store! . . . . . . . . . . . . . . . . . 10
+6 Why Do We Need This Reception Desk? 11
+6.1 Think of it like a Store Front . . . . . . . . . . . . . . . . . . . . . . . . 11
+6.2 It’s Like a Library System . . . . . . . . . . . . . . . . . . . . . . . . . . 11
+7 Real Example: How Someone Uses Our Factory 12
+7.1 Step-by-Step Customer Journey . . . . . . . . . . . . . . . . . . . . . . . 12
+8 What Makes This Design Smart? 12
+8.1 It’s Like Building with LEGOs . . . . . . . . . . . . . . . . . . . . . . . . 12
+8.2 The Magic Trick . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 13
+1
+Step 1: Package Entry Point Training Data Bot Tutorial
+9 Key Lessons for 6th Graders 13
+9.1 What We Learned . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 13
+9.2 Real-World Examples . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 14
+9.3 Why This Matters . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 14
+10 Fun Exercise: Design Your Own Factory! 14
+11 Step 2: The Factory Manager (Main Bot Class) 15
+11.1 What is the TrainingDataBot? . . . . . . . . . . . . . . . . . . . . . . . 15
+12 Part 1: The Manager’s Toolbox (Imports) 16
+12.1 Getting All the Workers (Component Imports) . . . . . . . . . . . . . . 16
+13 Part 2: Birth of the Factory Manager (Initialization) 17
+13.1 The Manager Moves In . . . . . . . . . . . . . . . . . . . . . . . . . . . 17
+13.2 Hiring All the Workers (Component Initialization) . . . . . . . . . . . . 17
+14 Part 3: The Manager’s Main Superpowers 18
+14.1 Superpower #1: Document Loading . . . . . . . . . . . . . . . . . . . . 18
+14.2 Superpower #2: Document Processing . . . . . . . . . . . . . . . . . . . 19
+14.3 Superpower #3: Quality Evaluation . . . . . . . . . . . . . . . . . . . . 19
+14.4 Superpower #4: Export Dataset . . . . . . . . . . . . . . . . . . . . . . 20
+15 Part 4: The Manager’s Dashboard (Statistics) 20
+15.1 The Manager’s Report Card . . . . . . . . . . . . . . . . . . . . . . . . . 20
+16 Part 5: Cleanup Time (Resource Management) 20
+16.1 Closing Down the Factory . . . . . . . . . . . . . . . . . . . . . . . . . . 21
+16.2 The Magic Context Manager . . . . . . . . . . . . . . . . . . . . . . . . 21
+17 Part 6: The Express Lane (Quick Process) 21
+17.1 One-Click Magic . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 21
+18 Part 7: How Everything Works Together 22
+18.1 The Complete Show . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 22
+18.2 The Data Journey . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 22
+19 Part 8: Why This Design is GENIUS 22
+19.1 Smart Design Patterns . . . . . . . . . . . . . . . . . . . . . . . . . . . . 22
+20 Part 9: Real-World Examples 23
+20.1 Example 1: Student Using the Bot . . . . . . . . . . . . . . . . . . . . . 23
+20.2 Example 2: Company Training AI . . . . . . . . . . . . . . . . . . . . . 23
+21 Part 10: Key Lessons 24
+21.1 What We Learned . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 24
+21.2 Real-World Applications . . . . . . . . . . . . . . . . . . . . . . . . . . . 24
+21.3 Your Programming Journey . . . . . . . . . . . . . . . . . . . . . . . . . 24
+22 Conclusion: The Heart of the System 24
+2
+Step 1: Package Entry Point Training Data Bot Tutorial
+23 Step 3: The Factory Blueprints (Core Data Models) 25
+23.1 What Are Data Models? . . . . . . . . . . . . . . . . . . . . . . . . . . . 25
+24 The Foundation: BaseEntity (The Master Template) 26
+24.1 Meet the Master Blueprint . . . . . . . . . . . . . . . . . . . . . . . . . 26
+25 The Categories: Enums (The Sorting System) 26
+25.1 Meet Our Sorting Specialists . . . . . . . . . . . . . . . . . . . . . . . . 26
+26 The Document Family (Our Input Data) 27
+26.1 Document - The Original Source . . . . . . . . . . . . . . . . . . . . . . 27
+26.2 TextChunk - The Bite-Sized Pieces . . . . . . . . . . . . . . . . . . . . . 28
+27 The Task Family (Our Work Instructions) 28
+27.1 TaskTemplate - The Recipe Card . . . . . . . . . . . . . . . . . . . . . . 28
+27.2 TaskResult - The Finished Product . . . . . . . . . . . . . . . . . . . . . 28
+28 The Training Family (Our Final Products) 29
+28.1 TrainingExample - One Perfect Learning Item . . . . . . . . . . . . . . . 29
+28.2 Dataset - A Complete Collection . . . . . . . . . . . . . . . . . . . . . . 29
+29 The Quality Family (Our Inspectors) 30
+29.1 QualityReport - The Report Card . . . . . . . . . . . . . . . . . . . . . 30
+30 The Operations Family (Our Factory Managers) 30
+30.1 ProcessingJob - The Work Order . . . . . . . . . . . . . . . . . . . . . . 30
+31 Why This Blueprint System is Amazing! 31
+31.1 1. Type Safety - No More Mistakes! . . . . . . . . . . . . . . . . . . . . 31
+31.2 2. Automatic Validation - Smart Checking! . . . . . . . . . . . . . . . . 31
+31.3 3. Consistent Structure - Everything Matches! . . . . . . . . . . . . . . . 31
+31.4 4. Easy Changes - Future-Proof Design! . . . . . . . . . . . . . . . . . . 32
+32 Real-World Example: Following the Data Journey 32
+32.1 Step 1: Document Creation . . . . . . . . . . . . . . . . . . . . . . . . . 32
+32.2 Step 2: Text Chunking . . . . . . . . . . . . . . . . . . . . . . . . . . . . 32
+32.3 Step 3: Task Execution . . . . . . . . . . . . . . . . . . . . . . . . . . . 32
+32.4 Step 4: Training Example Creation . . . . . . . . . . . . . . . . . . . . . 33
+32.5 Step 5: Dataset Building . . . . . . . . . . . . . . . . . . . . . . . . . . 33
+33 Blueprint System Benefits 33
+34 Step 4: The Document Highway System (Document Loading Pipeline) 34
+34.1 What is the Document Loading Pipeline? . . . . . . . . . . . . . . . . . 34
+35 The UnifiedLoader: The Smart Traffic Controller 35
+35.1 Meet the Master Controller . . . . . . . . . . . . . . . . . . . . . . . . . 35
+36 The Detective Work: How It Figures Out Document Types 35
+36.1 The Document Detective Process . . . . . . . . . . . . . . . . . . . . . . 35
+3
+Step 1: Package Entry Point Training Data Bot Tutorial
+37 The Loading Process: From Source to Document 36
+37.1 The Complete Journey . . . . . . . . . . . . . . . . . . . . . . . . . . . . 36
+38 Multi-Document Loading: The Convoy System 37
+38.1 Loading Multiple Documents at Once . . . . . . . . . . . . . . . . . . . 37
+39 Smart Features: The Highway Extras 38
+39.1 1. Error Handling - The Breakdown Service . . . . . . . . . . . . . . . . 38
+39.2 2. Format Detection - The Smart Scanner . . . . . . . . . . . . . . . . . 38
+39.3 3. Parallel Processing - The Multi-Lane Highway . . . . . . . . . . . . . 39
+40 Real-World Example: Loading a Project Folder 39
+40.1 Project Folder Structure . . . . . . . . . . . . . . . . . . . . . . . . . . . 39
+40.2 Loading Process . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 39
+41 Safety Features: The Highway Patrol 40
+41.1 1. File Validation . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 41
+41.2 2. Resource Management . . . . . . . . . . . . . . . . . . . . . . . . . . 41
+41.3 3. Detailed Logging . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 41
+42 Why This Highway System is Amazing! 42
+42.1 1. Universal Compatibility . . . . . . . . . . . . . . . . . . . . . . . . . 42
+42.2 2. Super Fast Performance . . . . . . . . . . . . . . . . . . . . . . . . . 42
+42.3 3. Bulletproof Reliability . . . . . . . . . . . . . . . . . . . . . . . . . . 42
+42.4 4. Developer Friendly . . . . . . . . . . . . . . . . . . . . . . . . . . . . 42
+43 Conclusion: The Document Highway System 42
+44 Step 5: The Specialist Trucks (Specialized Document Loaders) 43
+44.1 Meet Our Specialist Fleet . . . . . . . . . . . . . . . . . . . . . . . . . . 43
+45 The Master Blueprint: BaseLoader 43
+45.1 The Universal Loader Design . . . . . . . . . . . . . . . . . . . . . . . . 43
+45.2 Universal Safety Features . . . . . . . . . . . . . . . . . . . . . . . . . . 44
+46 The Text Master: DocumentLoader 45
+46.1 The Swiss Army Knife Loader . . . . . . . . . . . . . . . . . . . . . . . 45
+46.2 The Multi-Tool Approach . . . . . . . . . . . . . . . . . . . . . . . . . . 46
+46.3 Each Tool in Detail . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 46
+47 The PDF Expert: PDFLoader 48
+47.1 The Heavy-Duty PDF Loader . . . . . . . . . . . . . . . . . . . . . . . . 48
+47.2 The PDF Unlocking Process . . . . . . . . . . . . . . . . . . . . . . . . 48
+47.3 The PDF Text Extraction Tool . . . . . . . . . . . . . . . . . . . . . . . 48
+48 The Internet Surfer: WebLoader 49
+48.1 The Website Specialist . . . . . . . . . . . . . . . . . . . . . . . . . . . . 49
+48.2 The Web Surfing Process . . . . . . . . . . . . . . . . . . . . . . . . . . 49
+48.3 The Website Content Extractor . . . . . . . . . . . . . . . . . . . . . . . 49
+48.4 The Title Extractor . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 50
+4
+Step 1: Package Entry Point Training Data Bot Tutorial
+49 How All Loaders Work Together 50
+49.1 The Unified Loading Process . . . . . . . . . . . . . . . . . . . . . . . . 50
+49.2 The Final Result . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 51
+50 Why This Specialist System is Brilliant! 51
+50.1 1. Perfect Specialization . . . . . . . . . . . . . . . . . . . . . . . . . . . 51
+50.2 2. Consistent Interface . . . . . . . . . . . . . . . . . . . . . . . . . . . . 51
+50.3 3. Robust Error Handling . . . . . . . . . . . . . . . . . . . . . . . . . . 51
+50.4 4. Extensible Design . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 52
+50.5 5. Performance Optimized . . . . . . . . . . . . . . . . . . . . . . . . . . 52
+51 Conclusion: The Specialist Loader Fleet 52
+5
+Step 1: Package Entry Point Training Data Bot Tutorial
+1 Imagine This: You’re Building a Robot Factory!
+Hey there! Let’s pretend you’re building a super cool robot factory that makes training
+data for AI computers. Just like how a real factory has a main entrance where visitors
+come in, our code has a “main entrance” too!
+2 What is this __init__.py file?
+Think of __init__.py as the MAIN RECEPTION DESK of our robot factory!
+2.1 Just like at Disneyland...
+• When you go to Disneyland, you don’t just walk into random buildings
+• You go to the main entrance first
+• There’s a reception desk that tells you what rides are available
+• They give you a map showing where everything is
+• They tell you the rules and what you can and can’t do
+Key Insight
+Our __init__.py file does the EXACT same thing for our code!
+3 Let’s Break Down Each Part (Super Simple!)
+3.1 Part 1: The Welcome Sign
+Listing 1: Welcome Documentation
+"""
+1
+Training Data Curation Bot
+2
+3
+Enterprise-grade training data curation bot for LLM fine-tuning
+4
+using Decodo + Python automation.
+"""
+5
+What this means in kid language:
+• This is like a big sign at the front of our factory
+• It says: “Welcome to the Training Data Robot Factory!”
+• It tells visitors what we make here: Smart computer training data
+• Just like McDonald’s has a sign that says “McDonald’s - I’m Lovin’ It!”
+6
+Step 1: Package Entry Point Training Data Bot Tutorial
+3.2 Part 2: Factory Information Card
+Listing 2: Factory Metadata
+__version__ = "0.1.0"
+1
+__author__ = "Training Data Bot Team"
+2
+__email__ = "team@company.com"
+3
+__description__ = "Enterprise-grade training data curation bot for
+4
+LLM fine-tuning"
+What this means in kid language:
+• __version__ = “This is version 1.0 of our factory” (like iPhone 15, but
+we’re at version 0.1.0)
+• __author__ = “The people who built this factory” (like saying “Built
+by Apple”)
+• __email__ = “How to contact the builders” (like customer service)
+• __description__ = “What our factory does” (in fancy grown-up words)
+3.2.1 Why do we need this?
+• So people know who made it and how to get help
+• So we can keep track of different versions (like when you update an app on
+your phone)
+4 Part 3: Bringing All Our Tools to the Front Desk
+4.1 Getting Our Core Tools Ready
+Listing 3: Core Tools Import
+# Core imports for easy access
+1
+from .core.config import settings
+2
+from .core.logging import get_logger
+3
+from .core.exceptions import TrainingDataBotError
+4
+Imagine this like a toolbox:
+• settings = The instruction manual (tells our robot how to work)
+• get_logger = The notepad (writes down what the robot is doing)
+• TrainingDataBotError = The alarm system (tells us when something
+goes wrong)
+7
+Step 1: Package Entry Point Training Data Bot Tutorial
+In kid terms:
+When you build a LEGO set, you need:
+• The instruction booklet (settings)
+• You might write notes about what you’re doing (logger)
+• If a piece breaks, you need to know (error system)
+4.2 Getting Our Main Robot
+Listing 4: Main Robot Import
+# Main bot class
+1
+from .bot import TrainingDataBot
+2
+This is THE MOST IMPORTANT part!
+• TrainingDataBot = Our main robot that does all the work
+• It’s like bringing the factory manager to the front desk
+• When someone wants to use our factory, they talk to THIS robot
+4.2.1 Think of it like:
+• Going to a restaurant and asking for the manager
+• Calling customer service and getting the main helper
+• Going to the principal’s office and meeting the principal
+4.3 Getting Our Specialized Workers
+Listing 5: Document Processing Workers
+from .sources import (
+1
+PDFLoader, # Worker who reads PDF files
+2
+WebLoader, # Worker who reads websites
+3
+DocumentLoader, # Worker who reads text files
+4
+UnifiedLoader, # Boss who decides which worker to use
+5
+)
+6
+7
+from .tasks import (
+8
+QAGenerator, # Worker who makes questions and
+9
+answers
+ClassificationGenerator, # Worker who sorts things into
+10
+categories
+SummarizationGenerator, # Worker who makes short summaries
+11
+TaskTemplate, # The instruction sheets for workers
+12
+)
+13
+8
+Step 1: Package Entry Point Training Data Bot Tutorial
+4.3.1 These are like specialized workers in our factory:
+Document Reading Department:
+• PDFLoader = Worker who’s really good at reading PDF files (like school work-
+sheets)
+• WebLoader = Worker who’s really good at reading websites
+• DocumentLoader = Worker who reads regular text files (like .txt files)
+• UnifiedLoader = The supervisor who decides which worker should handle each
+job
+Task Creation Department:
+• QAGenerator = Worker who creates questions and answers (like making a
+quiz)
+• ClassificationGenerator=Workerwhosortsthings(likeorganizingyourclothes
+by color)
+• SummarizationGenerator = Worker who makes short summaries (like book
+reports)
+• TaskTemplate = The recipe cards that tell workers exactly what to do
+4.4 Getting Our Support Services
+Listing 6: Support Services Import
+from .decodo import DecodoClient # The internet scraper
+1
+from .preprocessing import TextPreprocessor # The text cleaner
+2
+from .evaluation import QualityEvaluator # The quality checker
+3
+from .storage import DatasetExporter # The packager
+4
+These are like support services:
+• DecodoClient = The internet detective (finds information on websites)
+• TextPreprocessor = The text cleaner (makes messy text neat and orga-
+nized)
+• QualityEvaluator = The quality inspector (makes sure everything is
+good quality)
+• DatasetExporter = The packager (puts finished work in boxes for cus-
+tomers)
+9
+Step 1: Package Entry Point Training Data Bot Tutorial
+5 Part 4: The “What Customers Can Buy” List
+Listing 7: Public API Definition
+__all__ = [
+1
+# Core
+2
+"TrainingDataBot",
+3
+"settings",
+4
+"get_logger",
+5
+"TrainingDataBotError",
+6
+7
+# Sources
+8
+"PDFLoader",
+9
+"WebLoader",
+10
+"DocumentLoader",
+11
+"UnifiedLoader",
+12
+13
+# Tasks
+14
+"QAGenerator",
+15
+"ClassificationGenerator",
+16
+"SummarizationGenerator",
+17
+"TaskTemplate",
+18
+19
+# Services
+20
+"DecodoClient",
+21
+"TextPreprocessor",
+22
+"QualityEvaluator",
+23
+"DatasetExporter",
+24
+]
+25
+5.1 This is like a SHOPPING LIST at a store!
+Imagine you go to a toy store:
+• The store has THOUSANDS of things inside
+• But at the front, there’s a big poster showing the “Featured Toys”
+• This list shows only the main things customers usually want
+• You CAN ask for other things, but these are the popular ones
+10
+Step 1: Package Entry Point Training Data Bot Tutorial
+In our factory:
+• We have hundreds of smaller code pieces inside
+• But THIS LIST shows the main tools people usually need
+• If someone says from training_data_bot import TrainingDataBot, they
+get exactly what they want
+• It’s like a menu at a restaurant - showing the main dishes!
+6 Why Do We Need This Reception Desk?
+6.1 Think of it like a Store Front
+Without this file:
+• Customers would have to know exactly where everything is
+• They’d have to say: “I want the robot from room 5, shelf 3, box 2”
+• It would be super confusing!
+With this file:
+• Customers just say: “I want the TrainingDataBot”
+• Our reception desk says: “Sure! Here it is!”
+• Much easier!
+6.2 It’s Like a Library System
+Bad way (without __init__.py):
+Listing 8: Confusing Import Method
+# User has to know exactly where everything is - CONFUSING!
+1
+from training_data_bot.bot import TrainingDataBot
+2
+from training_data_bot.core.config import settings
+3
+from training_data_bot.sources.unified import UnifiedLoader
+4
+from training_data_bot.tasks.qa_generation import QAGenerator
+5
+Good way (with __init__.py):
+Listing 9: Easy Import Method
+# User just asks for what they want - EASY!
+1
+from training_data_bot import TrainingDataBot, settings,
+2
+UnifiedLoader, QAGenerator
+It’s like the difference between:
+• Bad: “I need the book from Building 3, Floor 2, Section C, Shelf 5, Row 3”
+• Good: “I need the Harry Potter book”
+11
+Step 1: Package Entry Point Training Data Bot Tutorial
+7 Real Example: How Someone Uses Our Factory
+7.1 Step-by-Step Customer Journey
+1. Customer arrives at our factory:
+Listing 10: Customer Arrival
+# They knock on our front door
+1
+from training_data_bot import TrainingDataBot
+2
+2. Our reception desk (this file) says:
+“Welcome! Here’s your main robot!”
+3. Customer starts using the robot:
+Listing 11: Customer Usage
+# They create their personal robot assistant
+1
+bot = TrainingDataBot()
+2
+3
+# They give it some documents to read
+4
+documents = bot.load_documents(["my_essay.pdf", "homework.txt"])
+5
+6
+# They ask it to make training data
+7
+dataset = bot.process_documents(documents)
+8
+9
+# They get their finished product
+10
+bot.export_dataset(dataset, "my_training_data.json")
+11
+It’s like ordering at McDonald’s:
+1. You walk in (import)
+2. You order a Big Mac (TrainingDataBot)
+3. They make it for you (process_documents)
+4. You get your food (export_dataset)
+8 What Makes This Design Smart?
+8.1 It’s Like Building with LEGOs
+1. Easy to Use:
+• Users don’t need to know how our factory works inside
+• They just need to know what it can do
+• Like using a microwave - you don’t need to understand electricity!
+2. Easy to Change:
+12
+Step 1: Package Entry Point Training Data Bot Tutorial
+• If we improve a worker (like making PDFLoader faster), customers don’t need to
+change anything
+• Their code still works the same way
+• Like when your phone gets updated - the apps still work!
+3. Easy to Find Things:
+• Everything important is in ONE place
+• Like having all your school supplies in one backpack
+• No hunting around for what you need!
+8.2 The Magic Trick
+The really cool part is that this file is like a magic trick:
+• Customers think they’re getting everything from ONE place
+• But secretly, we’re going to many different rooms to collect all the pieces
+• Then we bring everything to the front desk
+• The customer never sees all the running around we do!
+It’s like when a waiter:
+1. Takes your order at your table
+2. Goes to the kitchen, gets food from 5 different stations
+3. Brings everything to you on one tray
+4. You just see the final result!
+9 Key Lessons for 6th Graders
+9.1 What We Learned
+1. Organization is Important: Keep related things together, like organizing your
+bedroom
+2. Make Things Easy for Others: Think about what users need, not just what’s
+easy for you
+3. Use Clear Names: TrainingDataBot tells you exactly what it does
+4. Have a Plan: Don’t just throw code everywhere - design it like building a house
+5. Hide Complexity: Users should see simple tools, not complicated machinery
+13
+Step 1: Package Entry Point Training Data Bot Tutorial
+9.2 Real-World Examples
+This pattern is EVERYWHERE:
+• McDonald’s: You order at the counter, but food comes from many different
+areas
+• Amazon: You visit one website, but packages come from warehouses world-
+wide
+• School: You go to one building, but teachers specialize in different subjects
+• Your Phone: You see simple app icons, but complex code runs underneath
+9.3 Why This Matters
+Understanding this helps you:
+• Use any software more easily (you’ll recognize these patterns)
+• Build your own programs that are easy for others to use
+• Think like a programmer - organizing complexity into simple interfaces
+• Work in teams - everyone knows where to find things
+10 Fun Exercise: Design Your Own Factory!
+Imagine you’re building a “Homework Help Robot Factory”:
+What would YOUR __init__.py file look like?
+Listing 12: Your Homework Factory
+"""
+1
+Homework Help Robot Factory
+2
+The best robots for helping students with homework!
+3
+"""
+4
+5
+__version__ = "1.0.0"
+6
+__author__ = "Your Name Here"
+7
+8
+# What tools would you put at the front desk?
+9
+from .math_helper import MathRobot
+10
+from .english_helper import WritingRobot
+11
+from .science_helper import ScienceRobot
+12
+from .main_robot import HomeworkBot
+13
+14
+__all__ = [
+15
+"HomeworkBot", # The main helper
+16
+"MathRobot", # For math problems
+17
+"WritingRobot", # For essays
+18
+"ScienceRobot", # For science questions
+19
+]
+20
+14
+Step 1: Package Entry Point Training Data Bot Tutorial
+Think about:
+• What would each robot do?
+• How would students use them?
+• What would make it easy vs. confusing?
+This is exactly how real programmers think when they design software!
+11 Step 2: The Factory Manager (Main Bot Class)
+Understanding the Heart of Our Robot Factory
+Welcome to the Factory Manager’s
+Office!
+Hey there, future programmers! Remember how in Step 1 we visited the reception
+deskofourrobotfactory? Well, nowwe’regoingtomeettheFACTORY MANAGER
+– the big boss who runs the entire operation!
+Disneyland Analogy
+If our factory was Disneyland, the reception desk (__init__.py) would be the
+entrance gate, but the Factory Manager (TrainingDataBot) would be Walt
+Disney himself – the person who makes all the magic happen!
+11.1 What is the TrainingDataBot?
+The TrainingDataBot is like the smartest, most organized manager you’ve ever
+seen. Let’s see what this amazing manager looks like:
+Listing 13: The Main Bot Class
+class TrainingDataBot:
+1
+"""
+2
+Main Training Data Bot class.
+3
+4
+This class provides a high-level interface for:
+5
+- Loading documents from various sources
+6
+- Processing text with task templates
+7
+- Quality assessment and filtering
+8
+- Dataset creation and export
+9
+"""
+10
+The Manager’s Job Description
+Our Factory Manager has FOUR main jobs (just like how a school principal has dif-
+ferent responsibilities):
+15
+Step 1: Package Entry Point Training Data Bot Tutorial
+1. Document Loading – Getting all the books and papers to read
+2. Text Processing – Turning those books into useful information
+3. Quality Control – Making sure everything is perfect
+4. Dataset Export – Packaging the final products for customers
+12 Part 1: The Manager’s Toolbox (Imports)
+Before our manager can do anything, they need to get their tools ready. Let’s see what’s
+in their toolbox:
+Listing 14: Core Imports
+import asyncio
+1
+from pathlib import Path
+2
+from typing import Dict, List, Optional, Union, Any
+3
+from uuid import UUID
+4
+5
+from .core.config import settings
+6
+from .core.logging import get_logger, LogContext
+7
+from .core.exceptions import TrainingDataBotError,
+8
+ConfigurationError
+What Each Tool Does
+Tool What It’s Like What It Does
+asyncio A super-fast assistant Do many things at the same time
+Path A GPS for files Find files on the computer
+typing A label maker Use the right types of info
+UUID A name tag maker Unique ID numbers
+settings The rule book Factory rules and settings
+get_logger A diary writer Writes down everything
+TrainingDataBotError An alarm system Alerts when things go wrong
+12.1 Getting All the Workers (Component Imports)
+Listing 15: Component Imports
+from .sources import UnifiedLoader # The document reader
+1
+boss
+from .decodo import DecodoClient # The internet
+2
+detective
+from .ai import AIClient # The AI brain
+3
+from .tasks import TaskManager # The work organizer
+4
+from .preprocessing import TextPreprocessor # The text cleaner
+5
+from .evaluation import QualityEvaluator # The quality inspector
+6
+from .storage import DatasetExporter, DatabaseManager # The
+7
+packagers
+16
+Step 1: Package Entry Point Training Data Bot Tutorial
+Avengers Analogy
+Each import brings a superhero with special powers:
+• UnifiedLoader = Captain America (leads the document reading team)
+• DecodoClient = Spider-Man (swings around the web collecting info)
+• AIClient = Iron Man (super smart, all the AI tech)
+• TaskManager = Nick Fury (organizes all the missions)
+• TextPreprocessor = The Hulk (smashes messy text into clean pieces)
+• QualityEvaluator = Hawkeye (eagle eyes for quality)
+• DatasetExporter = Ant-Man (packages things perfectly)
+13 Part 2: Birth of the Factory Manager (Initializa-
+tion)
+13.1 The Manager Moves In
+Listing 16: Initialization
+def __init__(self, config: Optional[Dict[str, Any]] = None):
+1
+"""
+2
+Initialize the Training Data Bot.
+3
+Args:
+4
+config: Optional configuration overrides
+5
+"""
+6
+self.logger = get_logger("training_data_bot")
+7
+self.config = config or {}
+8
+self._init_components()
+9
+self.logger.info("Training Data Bot initialized successfully")
+10
+What happens here:
+1. Gets a notebook (self.logger) to write down everything
+2. Reads the school rules (self.config)
+3. Hires all the teachers and staff (self._init_components())
+4. Announces “I’m ready to work!” (logger.info)
+13.2 Hiring All the Workers (Component Initialization)
+Listing 17: Component Initialization
+17
+Step 1: Package Entry Point Training Data Bot Tutorial
+def _init_components(self):
+1
+"""Initialize all bot components."""
+2
+try:
+3
+self.loader = UnifiedLoader()
+4
+self.decodo_client = DecodoClient()
+5
+self.ai_client = AIClient()
+6
+self.task_manager = TaskManager()
+7
+self.preprocessor = TextPreprocessor()
+8
+self.evaluator = QualityEvaluator()
+9
+self.exporter = DatasetExporter()
+10
+self.db_manager = DatabaseManager()
+11
+# State (Memory boxes)
+12
+self.documents: Dict[UUID, Document] = {}
+13
+self.datasets: Dict[UUID, Dataset] = {}
+14
+self.jobs: Dict[UUID, ProcessingJob] = {}
+15
+except Exception as e:
+16
+raise ConfigurationError("Failed to initialize bot
+17
+components", ...)
+The Manager’s Memory System
+Three special memory boxes:
+• Documents Box (self.documents): Filing cabinet for all homework
+• Datasets Box (self.datasets): Trophy case for completed projects
+• Jobs Box (self.jobs): To-do list for all work
+14 Part 3: The Manager’s Main Superpowers
+14.1 Superpower #1: Document Loading
+Listing 18: Document Loading
+async def load_documents(
+1
+self,
+2
+sources: Union[str, Path, List[Union[str, Path]]],
+3
+doc_types: Optional[List[DocumentType]] = None,
+4
+**kwargs
+5
+) -> List[Document]:
+6
+What it does:
+• Reads books from anywhere (files, websites, folders)
+• Handles multiple books at once
+• Organizes everything perfectly
+18
+Step 1: Package Entry Point Training Data Bot Tutorial
+How It Works (Step by Step)
+Listing 19: Document Loading Steps
+if isinstance(sources, (str, Path)):
+1
+sources = [sources]
+2
+3
+documents = []
+4
+for source in sources:
+5
+if source_path.is_dir():
+6
+dir_docs = await self.loader.load_directory(source_path)
+7
+documents.extend(dir_docs)
+8
+else:
+9
+doc = await self.loader.load_single(source)
+10
+documents.append(doc)
+11
+12
+for doc in documents:
+13
+self.documents[doc.id] = doc
+14
+14.2 Superpower #2: Document Processing
+Listing 20: Document Processing
+async def process_documents(
+1
+self,
+2
+documents: Optional[List[Document]] = None,
+3
+task_types: Optional[List[TaskType]] = None,
+4
+quality_filter: bool = True,
+5
+**kwargs
+6
+) -> Dataset:
+7
+The Magic Recipe
+1. Get all documents and choose tasks
+2. Create a work order
+3. For each document and task:
+• Cut into chunks
+• Ask AI to create training data
+• Create a training example
+• Check quality
+• Keep the good ones!
+4. Package everything into a dataset
+14.3 Superpower #3: Quality Evaluation
+19
+Step 1: Package Entry Point Training Data Bot Tutorial
+Listing 21: Quality Evaluation
+async def evaluate_dataset(
+1
+self,
+2
+dataset: Dataset,
+3
+detailed_report: bool = True
+4
+) -> QualityReport:
+5
+14.4 Superpower #4: Export Dataset
+Listing 22: Export Dataset
+async def export_dataset(
+1
+self,
+2
+dataset: Dataset,
+3
+output_path: Union[str, Path],
+4
+format: ExportFormat = ExportFormat.JSONL,
+5
+split_data: bool = True,
+6
+**kwargs
+7
+) -> Path:
+8
+15 Part 4: The Manager’s Dashboard (Statistics)
+15.1 The Manager’s Report Card
+Listing 23: Statistics Report
+def get_statistics(self) -> Dict[str, Any]:
+1
+return {
+2
+"documents": {
+3
+"total": len(self.documents),
+4
+"by_type": self._count_by_type(...),
+5
+"total_size": sum(doc.size for doc in ...)
+6
+},
+7
+"datasets": {
+8
+"total": len(self.datasets),
+9
+"total_examples": sum(len(ds.examples) ...),
+10
+"by_task_type": self._count_examples_by_task_type()
+11
+},
+12
+"jobs": {
+13
+"total": len(self.jobs),
+14
+"by_status": self._count_by_type(...),
+15
+"active": len([j for j in self.jobs.values()...])
+16
+}
+17
+}
+18
+16 Part 5: Cleanup Time (Resource Management)
+20
+Step 1: Package Entry Point Training Data Bot Tutorial
+16.1 Closing Down the Factory
+Listing 24: Cleanup
+async def cleanup(self):
+1
+"""Cleanup resources and close connections."""
+2
+try:
+3
+await self.db_manager.close()
+4
+if hasattr(self.decodo_client, ’close’):
+5
+await self.decodo_client.close()
+6
+if hasattr(self.ai_client, ’close’):
+7
+await self.ai_client.close()
+8
+self.logger.info("Bot cleanup completed")
+9
+16.2 The Magic Context Manager
+Listing 25: Context Manager
+async def __aenter__(self):
+1
+return self
+2
+3
+async def __aexit__(self, exc_type, exc_val, exc_tb):
+4
+await self.cleanup()
+5
+Magic Usage
+async with TrainingDataBot() as bot:
+1
+documents = await bot.load_documents(["my_file.pdf"])
+2
+dataset = await bot.process_documents(documents)
+3
+await bot.export_dataset(dataset, "output.jsonl")
+4
+Bot automatically cleans up when done!
+17 Part 6: The Express Lane (Quick Process)
+17.1 One-Click Magic
+Listing 26: Quick Process
+async def quick_process(
+1
+self,
+2
+source: Union[str, Path],
+3
+output_path: Union[str, Path],
+4
+task_types: Optional[List[TaskType]] = None,
+5
+export_format: ExportFormat = ExportFormat.JSONL
+6
+) -> Dataset:
+7
+documents = await self.load_documents([source])
+8
+dataset = await self.process_documents(documents=documents,
+9
+task_types=task_types)
+21
+Step 1: Package Entry Point Training Data Bot Tutorial
+await self.export_dataset(dataset=dataset, output_path=
+10
+output_path, format=export_format)
+return dataset
+11
+One-Click Example
+bot = TrainingDataBot()
+1
+dataset = await bot.quick_process("my_essay.pdf", "
+2
+training_data.jsonl")
+Done!
+18 Part 7: How Everything Works Together
+18.1 The Complete Show
+Imagine the TrainingDataBot as the director of a circus:
+1. The Performance Begins – Create a bot: bot = TrainingDataBot()
+2. Setting Up the Circus – Bot hires all performers (initializes components)
+3. Gathering the Audience – Load documents: bot.load_documents(["file1.pdf",
+"file2.txt"])
+4. TheMainPerformance–Processdocuments: bot.process_documents(documents)
+5. TheGrandFinale–Exportdataset: bot.export_dataset(dataset, "show_results.jsonl")
+6. Cleaning Up – Everyone goes home safely: bot.cleanup()
+18.2 The Data Journey
+1. Raw Documents → (UnifiedLoader reads them)
+2. Document Objects → (TextPreprocessor cuts them up)
+3. Text Chunks → (TaskManager + AIClient work magic)
+4. Training Examples → (QualityEvaluator checks quality)
+5. Good Training Examples → (DatasetExporter packages them)
+6. Final Dataset File
+19 Part 8: Why This Design is GENIUS
+19.1 Smart Design Patterns
+1. Single Responsibility: The bot manages, not does, the work
+22
+Step 1: Package Entry Point Training Data Bot Tutorial
+2. Dependency Injection: Workers are hired during setup; easy to upgrade
+3. Clear Interface: Users need only 4 main methods
+4. Async Everything: Handles multiple jobs at once
+5. State Management: Remembers everything for reports and debugging
+20 Part 9: Real-World Examples
+20.1 Example 1: Student Using the Bot
+Listing 27: Student Example
+async def make_study_guide():
+1
+bot = TrainingDataBot()
+2
+documents = await bot.load_documents(["biology_chapter5.pdf"])
+3
+dataset = await bot.process_documents(
+4
+documents=documents,
+5
+task_types=[TaskType.QA_GENERATION, TaskType.SUMMARIZATION
+6
+]
+)
+7
+await bot.export_dataset(dataset, "biology_study_guide.jsonl")
+8
+stats = bot.get_statistics()
+9
+print(f"Created {stats[’datasets’][’total_examples’]} study
+10
+questions!")
+20.2 Example 2: Company Training AI
+Listing 28: Company Example
+async def train_customer_service_ai():
+1
+async with TrainingDataBot() as bot:
+2
+documents = await bot.load_documents([
+3
+"customer_service_manual.pdf",
+4
+"product_catalog.docx",
+5
+"faq_website.html"
+6
+])
+7
+dataset = await bot.process_documents(
+8
+documents=documents,
+9
+task_types=[
+10
+TaskType.QA_GENERATION,
+11
+TaskType.CLASSIFICATION,
+12
+TaskType.SUMMARIZATION
+13
+]
+14
+)
+15
+report = await bot.evaluate_dataset(dataset)
+16
+if report.passed:
+17
+await bot.export_dataset(dataset, "
+18
+customer_service_training.jsonl")
+23
+Step 1: Package Entry Point Training Data Bot Tutorial
+print(" Ready to train our AI assistant!")
+19
+else:
+20
+print(" Quality not good enough, need better source
+21
+documents")
+21 Part 10: Key Lessons
+21.1 What We Learned
+1. Good Managers Don’t Do Everything – They organize and coordinate
+2. Modular Design is Powerful – Each component has one job
+3. State Management Matters – Keep track of your work
+4. Async Programming is Magic – Handle multiple tasks at once
+5. Always Clean Up – Free resources and prevent problems
+21.2 Real-World Applications
+• Video Games: Game engine manages graphics, sound, input, AI
+• Web Browsers: Manages tabs, downloads, security, rendering
+• Phone Apps: App store manages downloads, updates, payments
+• School Systems: Principal manages teachers, students, curriculum
+21.3 Your Programming Journey
+Understanding this helps you:
+• Design better, organized programs
+• Work in teams with clear responsibilities
+• Debug by understanding data and control flow
+• Scale applications for more users and data
+• Think architecturally about complex systems
+22 Conclusion: The Heart of the System
+The TrainingDataBot is the beating heart of our entire system. It’s not the most
+complex component, but it’s the most important because:
+• It provides the interface that users interact with
+• It connects all the pieces into a workflow
+24
+Step 1: Package Entry Point Training Data Bot Tutorial
+• It manages state and progress for users
+• It handles errors gracefully for reliability
+• It enables async processing for speed and scale
+Walt Disney Analogy
+Just like Walt Disney didn’t animate every frame himself, but his vision and man-
+agement created magical experiences – our TrainingDataBot creates magical AI
+training data by orchestrating all the specialist components!
+Ready to dive into those specialist components? Next, we’ll explore the Core Foun-
+dation that makes all this magic possible!
+23 Step 3: The Factory Blueprints (Core Data Models)
+Understanding the Recipe Cards That Make Everything Work
+Welcome to the Blueprint Department!
+We visited the reception desk (Step 1) and met the Factory Manager (Step 2).
+Now we visit the most important room in the entire factory: THE BLUEPRINT
+DEPARTMENT!
+Analogy
+If you want to build LEGO sets, you’d need instruction booklets that show you
+exactly what pieces to use and how to connect them. Our models.py file is like
+having all the instruction booklets for our entire robot factory!
+23.1 What Are Data Models?
+Data models are like recipe cards that tell the computer exactly what information
+should look like. Just as a chocolate chip cookie recipe tells you:
+• 2 cups of flour
+• 1 egg
+• 1 cup chocolate chips
+Our data models tell the computer:
+• Document: must have a title, content, and source
+• TrainingExample: must have input_text and output_text
+• Every piece of data: must have a unique ID and creation date
+25
+Step 1: Package Entry Point Training Data Bot Tutorial
+24 The Foundation: BaseEntity (The Master Tem-
+plate)
+24.1 Meet the Master Blueprint
+Listing 29: BaseEntity
+class BaseEntity(BaseModel):
+1
+id: UUID = Field(default_factory=uuid4)
+2
+created_at: datetime = Field(default_factory=datetime.utcnow)
+3
+updated_at: Optional[datetime] = None
+4
+metadata: Dict[str, Any] = Field(default_factory=dict)
+5
+Why This is Smart
+Suppose you have 1000 robots in your factory. How do you keep track of them?
+• Every robot gets a unique ID (like a barcode)
+• Every robot gets a birth timestamp
+• Every robot can have extra notes
+Now you can find any robot instantly!
+25 The Categories: Enums (The Sorting System)
+25.1 Meet Our Sorting Specialists
+Just as a library sorts books into categories, our factory sorts everything into clear cate-
+gories:
+DocumentType - What Kind of Files Can We Handle?
+class DocumentType(str, Enum):
+1
+PDF = "pdf"
+2
+DOCX = "docx"
+3
+TXT = "txt"
+4
+MD = "md"
+5
+HTML = "html"
+6
+JSON = "json"
+7
+CSV = "csv"
+8
+URL = "url"
+9
+Example: When someone gives you a file called "homework.pdf", the system knows:
+"This is a PDF type document."
+TaskType - What Jobs Can Our Robots Do?
+26
+Step 1: Package Entry Point Training Data Bot Tutorial
+class TaskType(str, Enum):
+1
+QA_GENERATION = "qa_generation"
+2
+CLASSIFICATION = "classification"
+3
+SUMMARIZATION = "summarization"
+4
+NER = "named_entity_recognition"
+5
+RED_TEAMING = "red_teaming"
+6
+INSTRUCTION_RESPONSE = "instruction_response"
+7
+Example: You request: "Read this story and make 5 questions." The system recog-
+nizes this is a QA_GENERATION task.
+QualityMetric - How Do We Check If Work is Good?
+class QualityMetric(str, Enum):
+1
+TOXICITY = "toxicity"
+2
+BIAS = "bias"
+3
+DIVERSITY = "diversity"
+4
+COHERENCE = "coherence"
+5
+RELEVANCE = "relevance"
+6
+Example: Like grading an essay on spelling, grammar, creativity, and relevance, our
+system checks work on multiple quality measures.
+26 The Document Family (Our Input Data)
+26.1 Document - The Original Source
+class Document(BaseEntity):
+1
+title: str
+2
+content: str
+3
+source: str
+4
+doc_type: DocumentType
+5
+word_count: int
+6
+char_count: int
+7
+Example: Bringing a book for a report:
+• Title: "Harry Potter and the Sorcerer’s Stone"
+• Content: All the words inside
+• Source: "School library"
+• Type: "Physical book"
+• Word count: "About 77,000 words"
+27
+Step 1: Package Entry Point Training Data Bot Tutorial
+26.2 TextChunk - The Bite-Sized Pieces
+class TextChunk(BaseEntity):
+1
+document_id: UUID
+2
+content: str
+3
+start_index: int
+4
+end_index: int
+5
+chunk_index: int
+6
+token_count: int
+7
+Why do we need chunks? A large document is cut into smaller, manageable pieces
+so the AI can process them efficiently.
+Example:
+• Original Document: "The Adventures of Tom Sawyer"
+• Chunk 1: Pages 1-10
+• Chunk 2: Pages 11-20
+• Chunk 3: Pages 21-30
+27 The Task Family (Our Work Instructions)
+27.1 TaskTemplate - The Recipe Card
+class TaskTemplate(BaseEntity):
+1
+name: str
+2
+task_type: TaskType
+3
+description: str
+4
+prompt_template: str
+5
+parameters: dict
+6
+Example: A recipe card for cookies:
+• Name: "Mom’s Famous Chocolate Chip Cookies"
+• Type: "Dessert"
+• Description: "Soft, chewy cookies"
+• Instructions: "Mix flour and butter, add eggs, bake at 350°F..."
+• Parameters: "Temperature: 350°F, Time: 12 minutes"
+27.2 TaskResult - The Finished Product
+class TaskResult(BaseEntity):
+1
+task_id: UUID
+2
+input_chunk_id: UUID
+3
+output: str
+4
+confidence: float
+5
+28
+Step 1: Package Entry Point Training Data Bot Tutorial
+quality_scores: dict
+6
+processing_time: float
+7
+Example:
+• Task: "Read paragraph about dinosaurs and make 3 questions"
+• Input: "Dinosaurs lived millions of years ago..."
+• Output:
+– "What did dinosaurs eat?"
+– "How big were dinosaurs?"
+– "When did dinosaurs live?"
+• Confidence: 95%
+• Quality: Good questions, relevant to topic
+• Time: 2.3 seconds
+28 The Training Family (Our Final Products)
+28.1 TrainingExample - One Perfect Learning Item
+class TrainingExample(BaseEntity):
+1
+input_text: str
+2
+output_text: str
+3
+task_type: TaskType
+4
+source_document_id: UUID
+5
+quality_scores: dict
+6
+Example:
+• Input: "What’s 2 + 2?"
+• Output: "4"
+• Task Type: "Math Problem"
+• Source: "Math Textbook, Page 15"
+• Quality: "Perfect example"
+28.2 Dataset - A Complete Collection
+class Dataset(BaseEntity):
+1
+name: str
+2
+description: str
+3
+examples: List[TrainingExample]
+4
+total_examples: int
+5
+train_split: float
+6
+29
+Step 1: Package Entry Point Training Data Bot Tutorial
+validation_split: float
+7
+test_split: float
+8
+Example:
+• Name: "Complete Science Study Pack"
+• Description: "Everything needed for the science test"
+• Examples: 500 questions and answers
+• Splits: 80% for training, 10% for validation, 10% for testing
+29 The Quality Family (Our Inspectors)
+29.1 QualityReport - The Report Card
+class QualityReport(BaseEntity):
+1
+target_id: UUID
+2
+overall_score: float
+3
+passed: bool
+4
+metric_scores: dict
+5
+issues: List[str]
+6
+warnings: List[str]
+7
+Example:
+• Student: "Math Test #3"
+• Overall Grade: 87%
+• Passed: Yes
+• Detailed Grades: Addition: 95%, Subtraction: 90%, Word Problems: 75%
+• Issues: "Needs to show more work on problem #7"
+• Warnings: "Watch out for careless mistakes"
+30 The Operations Family (Our Factory Managers)
+30.1 ProcessingJob - The Work Order
+class ProcessingJob(BaseEntity):
+1
+name: str
+2
+job_type: str
+3
+status: ProcessingStatus
+4
+total_items: int
+5
+processed_items: int
+6
+started_at: datetime
+7
+estimated_completion: datetime
+8
+30
+Step 1: Package Entry Point Training Data Bot Tutorial
+Example:
+• Order: "Large Pepperoni Pizza for Smith Family"
+• Type: "Food Delivery"
+• Status: "Out for Delivery"
+• Progress: "Delivered 8 out of 10 orders"
+• Started: "6:30 PM"
+• Estimated Arrival: "7:15 PM"
+31 Why This Blueprint System is Amazing!
+31.1 1. Type Safety - No More Mistakes!
+# Chaos! Anything goes!
+1
+document = {"title": 123, "content": True, "pages": "banana"} #
+2
+Incorrect
+3
+# Order and safety!
+4
+document = Document(
+5
+title="My Essay",
+6
+content="Once upon...",
+7
+doc_type=DocumentType.DOCX
+8
+)
+9
+31.2 2. Automatic Validation - Smart Checking!
+Our blueprints check if everything makes sense:
+• Is the email address valid?
+• Is the date a real date?
+• Are all required fields filled in?
+• Are numbers in the right range?
+31.3 3. Consistent Structure - Everything Matches!
+Every piece of data follows the same pattern:
+• Unique ID
+• Creation date
+• Extra information
+• Traceable and debuggable
+31
+Step 1: Package Entry Point Training Data Bot Tutorial
+31.4 4. Easy Changes - Future-Proof Design!
+Want to add a new field? Easy! Want to change something? No problem! The blueprint
+system makes updates simple.
+32 Real-World Example: Following the Data Journey
+Let’s trace how a real piece of data flows through the system:
+32.1 Step 1: Document Creation
+document = Document(
+1
+id="doc_001",
+2
+title="Romeo and Juliet",
+3
+content="Two households, both alike in dignity...",
+4
+source="/uploads/romeo_and_juliet.pdf",
+5
+doc_type=DocumentType.PDF,
+6
+word_count=25000,
+7
+created_at="2024-01-15 09:00:00"
+8
+)
+9
+32.2 Step 2: Text Chunking
+chunk = TextChunk(
+1
+id="chunk_001",
+2
+document_id="doc_001",
+3
+content="Two households, both alike in dignity, In fair Verona
+4
+...",
+start_index=0,
+5
+end_index=500,
+6
+chunk_index=1,
+7
+token_count=125,
+8
+created_at="2024-01-15 09:01:00"
+9
+)
+10
+32.3 Step 3: Task Execution
+task_result = TaskResult(
+1
+id="result_001",
+2
+input_chunk_id="chunk_001",
+3
+output="Q: Where does Romeo and Juliet take place? A: Verona,
+4
+Italy",
+confidence=0.92,
+5
+quality_scores={"relevance": 0.95, "coherence": 0.90},
+6
+processing_time=1.8,
+7
+created_at="2024-01-15 09:02:00"
+8
+)
+9
+32
+Step 1: Package Entry Point Training Data Bot Tutorial
+32.4 Step 4: Training Example Creation
+training_example = TrainingExample(
+1
+id="example_001",
+2
+input_text="Read this text and create a question: ’Two
+3
+households, both alike...’",
+output_text="Q: Where does Romeo and Juliet take place? A:
+4
+Verona, Italy",
+task_type=TaskType.QA_GENERATION,
+5
+source_document_id="doc_001",
+6
+source_chunk_id="chunk_001",
+7
+quality_scores={"overall": 0.93},
+8
+created_at="2024-01-15 09:03:00"
+9
+)
+10
+32.5 Step 5: Dataset Building
+dataset = Dataset(
+1
+id="dataset_001",
+2
+name="Shakespeare Q&A Collection",
+3
+description="Questions and answers about Shakespeare’s plays",
+4
+examples=[training_example],
+5
+total_examples=1,
+6
+created_at="2024-01-15 09:04:00"
+7
+)
+8
+Key Insight
+Every step is tracked, every piece of data has a clear structure, and any training
+example can be traced back to its original source.
+33 Blueprint System Benefits
+This system ensures:
+• Safety: No bad data enters the system
+• Consistency: Everything follows the same pattern
+• Traceability: Every piece of data can be tracked
+• Efficiency: The system knows exactly what to expect
+• Scalability: Can handle millions of documents
+Next Steps
+Step 4 will show how the Configuration System keeps all these blueprints working
+together perfectly!
+33
+Step 1: Package Entry Point Training Data Bot Tutorial
+Final Thought
+In programming, good data models are like a well-organized toolbox – everything
+has its place, and you can always find what you need when you need it!
+34 Step 4: The Document Highway System (Document
+Loading Pipeline)
+Understanding How Our Factory Receives All Kinds of Documents
+Welcome to the Document Highway!
+We have seen the reception desk (Step 1), met the Factory Manager (Step 2),
+and learned about our blueprints (Step 3). Now it’s time to visit the DOCUMENT
+HIGHWAY SYSTEM – the transportation network that brings all kinds of documents
+into our factory.
+Analogy
+Imagine running a pizza restaurant that delivers anywhere in the world. You need
+trucks for local delivery, ships for overseas, planes for fast delivery, and special
+refrigerated vehicles for frozen pizzas. Our Document Loading Pipeline is like
+having one smart dispatch center that automatically picks the right vehicle for
+every delivery!
+34.1 What is the Document Loading Pipeline?
+The Document Loading Pipeline is like a mail sorting system that can handle:
+• PDF files (like textbooks)
+• Word documents (like essays)
+• Websites (like Wikipedia pages)
+• Text files (like story files)
+• Spreadsheets (like grade sheets)
+• And many more!
+You do not need to specify the document type – the system figures it out and processes
+it correctly.
+34
+Step 1: Package Entry Point Training Data Bot Tutorial
+35 The UnifiedLoader: The Smart Traffic Controller
+35.1 Meet the Master Controller
+class UnifiedLoader(BaseLoader):
+1
+def __init__(self):
+2
+# Initialize all our specialized vehicles
+3
+self.document_loader = DocumentLoader() # Text vehicle
+4
+self.pdf_loader = PDFLoader() # PDF vehicle
+5
+self.web_loader = WebLoader() # Internet
+6
+vehicle
+7
+# List of all formats we can handle
+8
+self.supported_formats = list(DocumentType) # Everything!
+9
+How the Smart Controller Works
+Old Way:
+• "I have a PDF file!" → Use PDF loader
+• "I have a website!" → Use web loader
+• "I have a Word document!" → Which loader?
+UnifiedLoader Way:
+• "I have some document." → "No problem! Let me handle it automatically!"
+• MAGIC HAPPENS → "Done! Your document is perfectly loaded!"
+36 The Detective Work: How It Figures Out Docu-
+ment Types
+36.1 The Document Detective Process
+When you give the UnifiedLoader any document, it becomes a super detective:
+Step 1: Is it a Website?
+if source.startswith((’http://’, ’https://’)):
+1
+return self.web_loader # Send to web specialist!
+2
+Example:
+• Input: "https://en.wikipedia.org/wiki/Dinosaurs"
+• Recognized as a website, routed to the web loader.
+35
+Step 1: Package Entry Point Training Data Bot Tutorial
+Step 2: Is it a File?
+source = Path(source) # Convert to file path
+1
+if not source.exists():
+2
+return None # File doesn’t exist!
+3
+Example:
+• Input: "my_homework.pdf"
+• Recognized as a file path, checked for existence.
+Step 3: What Type of File?
+suffix = source.suffix.lower().lstrip(’.’) # Get file extension
+1
+doc_type = DocumentType(suffix) # Match to known
+2
+types
+3
+if doc_type == DocumentType.PDF:
+4
+return self.pdf_loader # PDF specialist
+5
+elif doc_type in [DocumentType.TXT, DocumentType.DOCX, ...]:
+6
+return self.document_loader # Text specialist
+7
+Example:
+• File: "story.txt" → Recognized as a text file, routed to the text loader.
+37 The Loading Process: From Source to Document
+37.1 The Complete Journey
+Example: Loading "Romeo and Juliet.pdf"
+# 1. Someone calls our dispatcher
+1
+source = "documents/romeo_and_juliet.pdf"
+2
+document = await unified_loader.load_single(source)
+3
+Step-by-step:
+Step 1: Detective Work
+if source.startswith(’http’): # Not a website
+1
+pass
+2
+source = Path(source) # Convert to file path
+3
+if source.exists(): # File exists!
+4
+suffix = "pdf" # Get extension
+5
+doc_type = DocumentType.PDF # It’s a PDF!
+6
+loader = self.pdf_loader # Choose PDF specialist
+7
+36
+Step 1: Package Entry Point Training Data Bot Tutorial
+Step 2: Send to Specialist
+document = await loader.load_single(source)
+1
+Step 3: Extract Content
+content = extract_pdf_text(source)
+1
+title = source.stem
+2
+Step 4: Package as Document
+document = Document(
+1
+id="doc_12345",
+2
+title="romeo_and_juliet",
+3
+content="Two households, both alike in dignity...",
+4
+source="documents/romeo_and_juliet.pdf",
+5
+doc_type=DocumentType.PDF,
+6
+word_count=25000,
+7
+created_at="2024-01-15 10:30:00"
+8
+)
+9
+Result
+From a simple file path to a perfectly structured document.
+38 Multi-Document Loading: The Convoy System
+38.1 Loading Multiple Documents at Once
+documents = await unified_loader.load_directory(
+1
+directory="school_textbooks/",
+2
+recursive=True
+3
+)
+4
+How the Convoy System Works
+Step 1: Scout the Territory
+sources = self._find_supported_files(directory)
+1
+# Found: ["math.pdf", "history.docx", "science.txt", "art.html"]
+2
+Step 2: Deploy Multiple Trucks
+max_workers = 4
+1
+tasks = [load_with_semaphore(source) for source in sources]
+2
+results = await asyncio.gather(*tasks)
+3
+Step 3: Quality Control
+37
+Step 1: Package Entry Point Training Data Bot Tutorial
+documents = []
+1
+for result in results:
+2
+if isinstance(result, Document):
+3
+documents.append(result)
+4
+else:
+5
+logger.error(f"Failed to load: {result}")
+6
+Parallel Loading Example
+• Truck 1 loads math.pdf → Success (2.1s)
+• Truck 2 loads history.docx → Success (1.8s)
+• Truck 3 loads science.txt → Success (0.5s)
+• Truck 4 loads art.html → Failed (corrupted file)
+Result: 3 out of 4 documents loaded successfully in just 2.1 seconds!
+39 Smart Features: The Highway Extras
+39.1 1. Error Handling - The Breakdown Service
+try:
+1
+document = await loader.load_single(source)
+2
+return document
+3
+except Exception as e:
+4
+raise DocumentLoadError(
+5
+f"Failed to load document from {source}",
+6
+file_path=str(source),
+7
+cause=e
+8
+)
+9
+Benefits:
+• If a load fails, the system continues
+• Errors are logged and reported
+• Robust batch processing
+39.2 2. Format Detection - The Smart Scanner
+def _find_supported_files(self, directory):
+1
+patterns = [
+2
+"*.pdf", "*.txt", "*.md", "*.html",
+3
+"*.docx", "*.json", "*.csv"
+4
+]
+5
+for pattern in patterns:
+6
+files.extend(directory.rglob(pattern))
+7
+38
+Step 1: Package Entry Point Training Data Bot Tutorial
+Benefits:
+• Finds all supported documents
+• Ignores unsupported files
+• Searches subfolders
+• Sorts files for processing
+39.3 3. Parallel Processing - The Multi-Lane Highway
+semaphore = asyncio.Semaphore(max_workers)
+1
+2
+async def load_with_semaphore(source):
+3
+async with semaphore:
+4
+return await self.load_single(source)
+5
+Benefits:
+• Multiple documents load in parallel
+• Prevents overload
+• Faster batch processing
+40 Real-World Example: Loading a Project Folder
+40.1 Project Folder Structure
+school_project/
+research/
+dinosaurs.pdf
+extinction_theory.docx
+fossil_data.csv
+sources/
+wikipedia_dinosaurs.html
+national_geographic.txt
+notes/
+my_research_notes.md
+bibliography.json
+40.2 Loading Process
+documents = await unified_loader.load_directory("school_project/")
+1
+39
+Step 1: Package Entry Point Training Data Bot Tutorial
+Step 1: Scouting (0.2 seconds)
+Found 7 files:
+- dinosaurs.pdf (PDF format)
+- extinction_theory.docx (DOCX format)
+- fossil_data.csv (CSV format)
+- wikipedia_dinosaurs.html (HTML format)
+- national_geographic.txt (TXT format)
+- my_research_notes.md (MD format)
+- bibliography.json (JSON format)
+Step 2: Parallel Loading (2.8 seconds)
+Truck 1: dinosaurs.pdf... Done (2.1s)
+Truck 2: extinction_theory.docx... Done (1.8s)
+Truck 3: fossil_data.csv... Done (0.9s)
+Truck 4: wikipedia_dinosaurs.html... Done (2.8s)
+Truck 5: national_geographic.txt... Done (0.4s)
+Truck 6: my_research_notes.md... Done (0.3s)
+Truck 7: bibliography.json... Done (0.6s)
+Step 3: Results (0.1 seconds)
+documents = [
+1
+Document(title="dinosaurs", content="Dinosaurs were...",
+2
+doc_type="pdf"),
+Document(title="extinction_theory", content="The theory states
+3
+...", doc_type="docx"),
+Document(title="fossil_data", content="Year: 1995, Location:
+4
+Montana...", doc_type="csv"),
+Document(title="wikipedia_dinosaurs", content="Dinosaurs are
+5
+...", doc_type="html"),
+Document(title="national_geographic", content="Scientists
+6
+believe...", doc_type="txt"),
+Document(title="my_research_notes", content="# My Notes...",
+7
+doc_type="md"),
+Document(title="bibliography", content="Source 1: National
+8
+Geographic...", doc_type="json"),
+]
+9
+# Total: 7 documents loaded in 3.1 seconds!
+10
+Result
+Instead of taking 8.9 seconds loading one by one, the system did it in just 3.1
+seconds!
+41 Safety Features: The Highway Patrol
+40
+Step 1: Package Entry Point Training Data Bot Tutorial
+41.1 1. File Validation
+def validate_source(self, source):
+1
+if isinstance(source, str) and source.startswith(’http’):
+2
+return DocumentType.URL in self.supported_formats
+3
+4
+source = Path(source)
+5
+if not source.exists():
+6
+return False
+7
+8
+suffix = source.suffix.lower().lstrip(’.’)
+9
+return DocumentType(suffix) in self.supported_formats
+10
+Protects against:
+• Loading files that don’t exist
+• Unsupported file types
+• Corrupted files
+• Dangerous files
+41.2 2. Resource Management
+semaphore = asyncio.Semaphore(max_workers=4)
+1
+2
+if row_num > 1000:
+3
+lines.append("... (truncated, too many rows)")
+4
+break
+5
+Protects against:
+• Memory overload
+• Files that are too big
+• System crashes
+• Infinite loops
+41.3 3. Detailed Logging
+with LogContext("unified_load_single", source=str(source)):
+1
+self.logger.debug(f"Successfully loaded {source}")
+2
+Benefits:
+• Tracking successful loads
+• Debugging failures
+• Performance monitoring
+• Audit trails
+41
+Step 1: Package Entry Point Training Data Bot Tutorial
+42 Why This Highway System is Amazing!
+42.1 1. Universal Compatibility
+• One interface handles all document types
+• No need to learn different systems
+• Automatic detection and routing
+• Easy to extend for new formats
+42.2 2. Super Fast Performance
+• Parallel processing
+• Smart routing
+• Resource management
+• Batch operations
+42.3 3. Bulletproof Reliability
+• Error recovery
+• Validation
+• Logging
+• Graceful degradation
+42.4 4. Developer Friendly
+• Simple API
+• Consistent output
+• Flexible configuration
+• Future-proof design
+43 Conclusion: The Document Highway System
+The UnifiedLoader acts as the traffic controller that:
+• Detects document types
+• Routes to the right specialist
+• Loads multiple documents in parallel
+• Delivers perfectly formatted results
+42
+Step 1: Package Entry Point Training Data Bot Tutorial
+• Protects against errors and overload
+Next Steps
+Step 5 will take you inside each specialist loader to see how they handle their
+specific document types.
+Final Thought
+Good software is like a well-designed highway system – it gets you where you
+want to go quickly, safely, and without you having to think about the complex
+engineering underneath!
+44 Step 5: The Specialist Trucks (Specialized Docu-
+ment Loaders)
+Understanding How Each Vehicle Type Handles Different Documents
+Welcome to the Specialist Garage!
+In Step 4, we learned about the smart highway system that automatically routes
+documents to the right loaders. Now it’s time to go inside the garage and meet each
+specialist loader.
+Analogy
+Afiretruckhasladdersandhosesforfires, anambulancehasmedicalequipmentfor
+emergencies. Each vehicle is perfectly designed for its specific job. Our document
+loaders work the same way.
+44.1 Meet Our Specialist Fleet
+The system has four main specialist loaders:
+1. DocumentLoader – The Text Master (TXT, MD, HTML, JSON, CSV, DOCX)
+2. PDFLoader – The PDF Expert (PDF files)
+3. WebLoader – The Internet Surfer (websites and URLs)
+4. BaseLoader – The Master Blueprint (design all others follow)
+45 The Master Blueprint: BaseLoader
+45.1 The Universal Loader Design
+43
+Step 1: Package Entry Point Training Data Bot Tutorial
+class BaseLoader(ABC):
+1
+def __init__(self):
+2
+self.logger = get_logger(f"loader.{self.__class__.__name__
+3
+}")
+self.supported_formats: List[DocumentType] = []
+4
+5
+@abstractmethod
+6
+async def load_single(self, source, **kwargs) -> Document:
+7
+pass # Every loader MUST know how to load one document
+8
+Why We Need a Master Blueprint
+Without a Master Blueprint:
+• PDF loader might work differently than Text loader
+• Some loaders might be missing features
+• Hard to add new loader types
+• Chaos and confusion
+With the Master Blueprint:
+• All loaders work the same way from the outside
+• All loaders have the same safety features
+• Easy to add new loader types
+• Consistent, reliable service
+45.2 Universal Safety Features
+Every loader gets these mandatory safety features:
+1. Traffic Control (Parallel Loading)
+async def load_multiple(self, sources, max_workers=4):
+1
+semaphore = asyncio.Semaphore(max_workers)
+2
+async def load_with_semaphore(source):
+3
+async with semaphore:
+4
+return await self.load_single(source)
+5
+tasks = [load_with_semaphore(source) for source in sources]
+6
+results = await asyncio.gather(*tasks)
+7
+Benefits:
+• Multiple loaders can work at the same time
+• No system overload
+44
+Step 1: Package Entry Point Training Data Bot Tutorial
+• Failed loads don’t stop the others
+• Maximum efficiency
+2. Format Detection
+def get_document_type(self, source):
+1
+if source.startswith(’http’):
+2
+return DocumentType.URL
+3
+source = Path(source)
+4
+suffix = source.suffix.lower().lstrip(’.’)
+5
+return DocumentType(suffix)
+6
+Benefits:
+• Loaders can identify the type of file
+• Automatic format detection
+3. Document Creation Factory
+def create_document(self, title, content, source, doc_type, **
+1
+kwargs):
+return Document(
+2
+id=uuid4(),
+3
+title=title,
+4
+content=content,
+5
+source=source,
+6
+doc_type=doc_type,
+7
+word_count=len(content.split()),
+8
+created_at=datetime.utcnow(),
+9
+**kwargs
+10
+)
+11
+Benefits:
+• Every document is packaged the same way
+• Complete tracking information
+• Consistent quality control
+46 The Text Master: DocumentLoader
+46.1 The Swiss Army Knife Loader
+The DocumentLoader is like a Swiss Army knife – it has tools for many different text-
+based formats:
+45
+Step 1: Package Entry Point Training Data Bot Tutorial
+class DocumentLoader(BaseLoader):
+1
+def __init__(self):
+2
+super().__init__()
+3
+self.supported_formats = [
+4
+DocumentType.TXT,
+5
+DocumentType.MD,
+6
+DocumentType.HTML,
+7
+DocumentType.JSON,
+8
+DocumentType.CSV,
+9
+DocumentType.DOCX,
+10
+]
+11
+46.2 The Multi-Tool Approach
+async def load_single(self, source, encoding="utf-8"):
+1
+doc_type = self.get_document_type(source)
+2
+if doc_type == DocumentType.TXT:
+3
+content = await self._load_text(source, encoding)
+4
+elif doc_type == DocumentType.MD:
+5
+content = await self._load_markdown(source, encoding)
+6
+elif doc_type == DocumentType.HTML:
+7
+content = await self._load_html(source, encoding)
+8
+elif doc_type == DocumentType.JSON:
+9
+content = await self._load_json(source, encoding)
+10
+elif doc_type == DocumentType.CSV:
+11
+content = await self._load_csv(source, encoding)
+12
+elif doc_type == DocumentType.DOCX:
+13
+content = await self._load_docx(source)
+14
+46.3 Each Tool in Detail
+Tool 1: Plain Text Handler
+async def _load_text(self, path, encoding):
+1
+return await asyncio.to_thread(path.read_text, encoding=
+2
+encoding)
+Reads simple text files, handles encodings, perfect for notes and stories.
+Tool 2: Markdown Handler
+async def _load_markdown(self, path, encoding):
+1
+return await asyncio.to_thread(path.read_text, encoding=
+2
+encoding)
+Reads Markdown files, preserves formatting markers.
+46
+Step 1: Package Entry Point Training Data Bot Tutorial
+Tool 3: HTML Text Extractor
+async def _load_html(self, path, encoding):
+1
+try:
+2
+from bs4 import BeautifulSoup
+3
+with open(path, ’r’, encoding=encoding) as f:
+4
+soup = BeautifulSoup(f.read(), ’html.parser’)
+5
+for script in soup(["script", "style"]):
+6
+script.decompose()
+7
+text = soup.get_text()
+8
+lines = (line.strip() for line in text.splitlines())
+9
+chunks = (phrase.strip() for line in lines for phrase in
+10
+line.split(" "))
+return ’ ’.join(chunk for chunk in chunks if chunk)
+11
+except ImportError:
+12
+return path.read_text(encoding=encoding)
+13
+Extracts clean text from HTML, removes scripts and styles.
+Tool 4: JSON Data Converter
+async def _load_json(self, path, encoding):
+1
+with open(path, ’r’, encoding=encoding) as f:
+2
+data = json.load(f)
+3
+if isinstance(data, dict):
+4
+lines = [f"{key}: {value}" for key, value in data.items()]
+5
+return "\n".join(lines)
+6
+elif isinstance(data, list):
+7
+lines = [f"Item {i+1}: {item}" for i, item in enumerate(
+8
+data)]
+return "\n".join(lines)
+9
+Converts JSON objects or arrays into readable text.
+Tool 5: CSV Spreadsheet Reader
+async def _load_csv(self, path, encoding):
+1
+lines = []
+2
+with open(path, ’r’, encoding=encoding, newline=’’) as f:
+3
+reader = csv.reader(f)
+4
+headers = next(reader, None)
+5
+if headers:
+6
+lines.append("Headers: " + ", ".join(headers))
+7
+lines.append("")
+8
+for row_num, row in enumerate(reader, 1):
+9
+if headers and len(row) == len(headers):
+10
+row_data = [f"{header}: {value}" for header, value
+11
+in zip(headers, row)]
+lines.append(f"Row {row_num}: {’ | ’.join(row_data
+12
+)}")
+return "\n".join(lines)
+13
+47
+Step 1: Package Entry Point Training Data Bot Tutorial
+Reads CSV files, preserves headers and row data.
+Tool 6: Word Document Reader
+async def _load_docx(self, path):
+1
+try:
+2
+from docx import Document
+3
+doc = Document(path)
+4
+text_parts = [p.text for p in doc.paragraphs if p.text.
+5
+strip()]
+return "\n".join(text_parts)
+6
+except ImportError:
+7
+raise DocumentLoadError("python-docx package required for
+8
+DOCX files")
+Reads Microsoft Word documents, extracts all paragraphs.
+47 The PDF Expert: PDFLoader
+47.1 The Heavy-Duty PDF Loader
+class PDFLoader(BaseLoader):
+1
+def __init__(self):
+2
+super().__init__()
+3
+self.supported_formats = [DocumentType.PDF]
+4
+47.2 The PDF Unlocking Process
+async def load_single(self, source):
+1
+source = Path(source)
+2
+if not source.exists():
+3
+raise DocumentLoadError(f"File not found: {source}")
+4
+content = await self._extract_pdf_text(source)
+5
+document = self.create_document(
+6
+title=source.stem,
+7
+content=content,
+8
+source=source,
+9
+doc_type=DocumentType.PDF,
+10
+extraction_method="PDFLoader.pymupdf",
+11
+)
+12
+return document
+13
+47.3 The PDF Text Extraction Tool
+async def _extract_pdf_text(self, path):
+1
+def _extract_text():
+2
+try:
+3
+48
+Step 1: Package Entry Point Training Data Bot Tutorial
+import fitz # PyMuPDF
+4
+doc = fitz.open(path)
+5
+text_parts = []
+6
+for page_num in range(doc.page_count):
+7
+page = doc[page_num]
+8
+text = page.get_text()
+9
+if text.strip():
+10
+text_parts.append(f"Page {page_num + 1}:\n{
+11
+text}")
+doc.close()
+12
+return "\n\n".join(text_parts)
+13
+except ImportError:
+14
+raise DocumentLoadError(
+15
+"PyMuPDF package required for PDF files. Install
+16
+with: pip install PyMuPDF"
+)
+17
+return await asyncio.to_thread(_extract_text)
+18
+Extracts text from each page and combines into one document.
+48 The Internet Surfer: WebLoader
+48.1 The Website Specialist
+class WebLoader(BaseLoader):
+1
+def __init__(self):
+2
+super().__init__()
+3
+self.supported_formats = [DocumentType.URL]
+4
+48.2 The Web Surfing Process
+async def load_single(self, source):
+1
+if not source.startswith((’http://’, ’https://’)):
+2
+raise DocumentLoadError(f"Invalid URL: {source}")
+3
+content = await self._fetch_url_content(source)
+4
+title = self._extract_title(source, content)
+5
+document = self.create_document(
+6
+title=title,
+7
+content=content,
+8
+source=source,
+9
+doc_type=DocumentType.URL,
+10
+extraction_method="WebLoader.httpx",
+11
+)
+12
+return document
+13
+48.3 The Website Content Extractor
+49
+Step 1: Package Entry Point Training Data Bot Tutorial
+async def _fetch_url_content(self, url):
+1
+async with httpx.AsyncClient(timeout=30.0) as client:
+2
+response = await client.get(url)
+3
+response.raise_for_status()
+4
+content_type = response.headers.get(’content-type’, ’’).
+5
+lower()
+if ’text/html’ in content_type:
+6
+return self._extract_html_text(response.text)
+7
+else:
+8
+return response.text
+9
+10
+def _extract_html_text(self, html):
+11
+try:
+12
+from bs4 import BeautifulSoup
+13
+soup = BeautifulSoup(html, ’html.parser’)
+14
+for script in soup(["script", "style"]):
+15
+script.decompose()
+16
+text = soup.get_text()
+17
+lines = (line.strip() for line in text.splitlines())
+18
+chunks = (phrase.strip() for line in lines for phrase in
+19
+line.split(" "))
+return ’ ’.join(chunk for chunk in chunks if chunk)
+20
+except ImportError:
+21
+return html
+22
+48.4 The Title Extractor
+def _extract_title(self, url, content):
+1
+try:
+2
+from bs4 import BeautifulSoup
+3
+soup = BeautifulSoup(content, ’html.parser’)
+4
+title_tag = soup.find(’title’)
+5
+if title_tag and title_tag.text.strip():
+6
+return title_tag.text.strip()
+7
+except ImportError:
+8
+pass
+9
+from urllib.parse import urlparse
+10
+parsed = urlparse(url)
+11
+return parsed.netloc + parsed.path or url
+12
+49 How All Loaders Work Together
+49.1 The Unified Loading Process
+sources = [
+1
+"textbook.pdf",
+2
+"notes.txt",
+3
+50
+Step 1: Package Entry Point Training Data Bot Tutorial
+"data.csv",
+4
+"https://wikipedia.org"
+5
+]
+6
+for source in sources:
+7
+if source.startswith(’http’):
+8
+loader = web_loader
+9
+elif source.endswith(’.pdf’):
+10
+loader = pdf_loader
+11
+else:
+12
+loader = document_loader
+13
+document = await loader.load_single(source)
+14
+49.2 The Final Result
+pdf_doc = Document(title="textbook", content="Chapter 1...",
+1
+doc_type="pdf")
+txt_doc = Document(title="notes", content="My research...",
+2
+doc_type="txt")
+csv_doc = Document(title="data", content="Headers: Name, Age...",
+3
+doc_type="csv")
+web_doc = Document(title="Wikipedia", content="Dinosaurs were...",
+4
+doc_type="url")
+All documents have the same structure, regardless of source type.
+50 Why This Specialist System is Brilliant!
+50.1 1. Perfect Specialization
+• Each loader is expertly designed for its document type
+• Maximum quality extraction for each type
+50.2 2. Consistent Interface
+• All loaders follow the same blueprint (BaseLoader)
+• Same methods: load_single(), load_multiple()
+• Same output format: Document objects
+50.3 3. Robust Error Handling
+• Each loader handles its own error cases
+• System keeps running even when individual files fail
+51
+Step 1: Package Entry Point Training Data Bot Tutorial
+50.4 4. Extensible Design
+• Easy to add new loaders for new document types
+• Future-proof architecture
+50.5 5. Performance Optimized
+• Parallel processing
+• Async operations
+• Resource management
+• Background processing
+51 Conclusion: The Specialist Loader Fleet
+Each loader is perfectly designed for its job:
+• DocumentLoader – The Swiss Army knife for text formats
+• PDFLoader – The heavy-duty PDF specialist
+• WebLoader – The smart web surfer
+• BaseLoader – The master blueprint ensuring consistency
+They all work together seamlessly to handle any type of document.
+Next Steps
+Step 6 will show what happens to documents after they’re loaded – the Text Pre-
+processing Pipeline that turns raw documents into perfect bite-sized pieces!
+Final Thought
+The best systems are like a well-organized team – each member has their specialty,
+but they all work together toward the same goal!
+52
