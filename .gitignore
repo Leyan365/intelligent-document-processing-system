@@ -1,7 +1,15 @@
-.vscode
+# Editors / env
+.vscode/
 .env
-.txt
 venv/
+
+# Python
 __pycache__/
+*.pyc
+
+# Data / artifacts
 *.db
 *.log
+
+# Local test files
+sample.pdf

@@ -10,9 +10,9 @@ from .pipeline.loader import DocumentLoaderRouter
 class IDPSystem:
     """Coordinates the document processing pipeline.
 
-    Phase 1 only wires the package structure and loader entry point. OCR,
-    classification, extraction, persistence, and search are intentionally left
-    as placeholders for later phases.
+    Phase 2 supports document input and text extraction. Classification,
+    structured information extraction, persistence, and search are intentionally
+    left as placeholders for later phases.
     """
 
     def __init__(self, loader: DocumentLoaderRouter | None = None) -> None:
@@ -30,5 +30,5 @@ class IDPSystem:
         return [self.load_document(source) for source in sources]
 
     def process_document(self, source: str | Path) -> Document:
-        """Phase 1 placeholder for the future end-to-end pipeline."""
+        """Load and extract text from a document."""
         return self.load_document(source)
