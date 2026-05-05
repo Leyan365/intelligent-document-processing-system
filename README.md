@@ -21,3 +21,10 @@ Basic import check:
 ```powershell
 $env:PYTHONPATH="src"; python -c "from idp_system.system import IDPSystem; print(IDPSystem)"
 ```
+
+Basic extraction check, once PyMuPDF/OpenCV/PaddleOCR are installed and a sample
+file is available:
+
+```powershell
+$env:PYTHONPATH="src"; python scripts/extract_text_sample.py path\to\sample.pdf
+```
