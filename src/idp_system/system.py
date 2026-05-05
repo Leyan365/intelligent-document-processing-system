@@ -51,11 +51,13 @@ class IDPSystem:
         }
 
         self.processed_documents[document.id] = processed_document
+        search_text = _build_search_text(document_type, fields, document.content)
+
         self.search_service.add_documents(
             [
                 {
                     "id": document.id,
-                    "text": document.content,
+                    "text": search_text,
                     "type": document_type,
                     "fields": fields,
                     "source": document.source,
@@ -67,6 +69,28 @@ class IDPSystem:
     def search(self, query: str, k: int = 5) -> list[dict[str, object]]:
         """Search processed documents by semantic similarity."""
         return self.search_service.search(query, k=k)
+
+
+def _build_search_text(
+    document_type: str,
+    fields: dict[str, object],
+    document_text: str,
+    content_limit: int = 2500,
+) -> str:
+    clean_content = " ".join(document_text.split())[:content_limit]
+
+    return (
+        f"{document_type} document.\n"
+        f"Supplier: {_field_value(fields.get('supplier'))}\n"
+        f"Invoice Number: {_field_value(fields.get('invoice_number'))}\n"
+        f"Date: {_field_value(fields.get('date'))}\n"
+        f"Amount: {_field_value(fields.get('amount'))}\n\n"
+        f"Relevant Content:\n{clean_content}"
+    )
+
+
+def _field_value(value: object) -> str:
+    return "" if value in (None, "") else str(value)
 
 
 if __name__ == "__main__":
