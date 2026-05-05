@@ -13,3 +13,6 @@ __pycache__/
 
 # Local test files
 sample.pdf
+
+models/
+*.joblib
