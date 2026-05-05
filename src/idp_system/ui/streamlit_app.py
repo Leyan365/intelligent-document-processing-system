@@ -128,9 +128,17 @@ def render_result(result: dict[str, Any]) -> None:
         st.markdown("**Extracted Fields**")
         field_cols = st.columns(2)
         fields = result.get("fields") or {}
+        FIELD_LABELS = {
+            "invoice_number": "Invoice / Order No.",
+            "date": "Date",
+            "amount": "Amount",
+            "supplier": "Supplier",
+        }
+
         for index, field_name in enumerate(("invoice_number", "date", "amount", "supplier")):
             with field_cols[index % 2]:
-                _field_card(field_name, fields.get(field_name))
+                label = FIELD_LABELS.get(field_name, field_name.replace("_", " ").title())
+                _field_card(label, fields.get(field_name))
 
 
 def render_search_page() -> None:
@@ -276,7 +284,7 @@ def _snippet(text: str, length: int = 500) -> str:
 
 def _field_card(label: str, value: Any) -> None:
     with st.container(border=True):
-        st.caption(label.replace("_", " ").title())
+        st.caption(label)
         st.markdown(f"`{_display_value(value)}`")
 
 
