@@ -3,21 +3,29 @@
 from pathlib import Path
 from typing import Iterable
 
-from .core.models import Document
+from .core.models import Document, DocumentType
+from .pipeline.classifier import DocumentClassifier
+from .pipeline.extractor import InformationExtractor
 from .pipeline.loader import DocumentLoaderRouter
+from .pipeline.search import SemanticSearchService
 
 
 class IDPSystem:
-    """Coordinates the document processing pipeline.
+    """Coordinates the in-memory document processing pipeline."""
 
-    Phase 2 supports document input and text extraction. Classification,
-    structured information extraction, persistence, and search are intentionally
-    left as placeholders for later phases.
-    """
-
-    def __init__(self, loader: DocumentLoaderRouter | None = None) -> None:
+    def __init__(
+        self,
+        loader: DocumentLoaderRouter | None = None,
+        classifier: DocumentClassifier | None = None,
+        extractor: InformationExtractor | None = None,
+        search_service: SemanticSearchService | None = None,
+    ) -> None:
         self.loader = loader or DocumentLoaderRouter()
+        self.classifier = classifier or DocumentClassifier()
+        self.extractor = extractor or InformationExtractor()
+        self.search_service = search_service or SemanticSearchService()
         self.documents: dict[str, Document] = {}
+        self.processed_documents: dict[str, dict[str, object]] = {}
 
     def load_document(self, source: str | Path) -> Document:
         """Load one document through the router."""
@@ -29,6 +37,57 @@ class IDPSystem:
         """Load multiple documents through the router."""
         return [self.load_document(source) for source in sources]
 
-    def process_document(self, source: str | Path) -> Document:
-        """Load and extract text from a document."""
-        return self.load_document(source)
+    def process_document(self, source: str | Path) -> dict[str, object]:
+        """Load, classify, extract fields, store, and index one document."""
+        document = self.load_document(source)
+        document_type = self.classifier.classify(document.content)
+        fields = self.extractor.extract(document.content, document_type)
+
+        processed_document = {
+            "id": document.id,
+            "text": document.content,
+            "type": document_type,
+            "fields": fields,
+        }
+
+        self.processed_documents[document.id] = processed_document
+        self.search_service.add_documents(
+            [
+                {
+                    "id": document.id,
+                    "text": document.content,
+                    "type": document_type,
+                    "fields": fields,
+                    "source": document.source,
+                }
+            ]
+        )
+        return processed_document
+
+    def search(self, query: str, k: int = 5) -> list[dict[str, object]]:
+        """Search processed documents by semantic similarity."""
+        return self.search_service.search(query, k=k)
+
+
+if __name__ == "__main__":
+    class ExampleLoader:
+        def load(self, source: str | Path) -> Document:
+            return Document(
+                title="sample_invoice",
+                content="Supplier: Acme Office Supplies\nInvoice No: INV-123\nDate: 2026-05-05\nTotal Amount: $1,250.00",
+                source=str(source),
+                doc_type=DocumentType.PDF,
+            )
+
+    class ExampleSearchService:
+        def __init__(self) -> None:
+            self.documents: list[dict[str, object]] = []
+
+        def add_documents(self, documents: list[dict[str, object]]) -> None:
+            self.documents.extend(documents)
+
+        def search(self, query: str, k: int = 5) -> list[dict[str, object]]:
+            return self.documents[:k]
+
+    system = IDPSystem(loader=ExampleLoader(), search_service=ExampleSearchService())
+    print(system.process_document("sample.pdf"))
