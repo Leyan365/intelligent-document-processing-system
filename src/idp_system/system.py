@@ -40,13 +40,16 @@ class IDPSystem:
     def process_document(self, source: str | Path) -> dict[str, object]:
         """Load, classify, extract fields, store, and index one document."""
         document = self.load_document(source)
-        document_type = self.classifier.classify(document.content)
+        classification = _classify_document(self.classifier, document.content)
+        document_type = str(classification["label"])
         fields = self.extractor.extract(document.content, document_type)
 
         processed_document = {
             "id": document.id,
             "text": document.content,
             "type": document_type,
+            "confidence": classification.get("confidence"),
+            "confidence_source": classification.get("confidence_source"),
             "fields": fields,
         }
 
@@ -59,6 +62,8 @@ class IDPSystem:
                     "id": document.id,
                     "text": search_text,
                     "type": document_type,
+                    "confidence": classification.get("confidence"),
+                    "confidence_source": classification.get("confidence_source"),
                     "fields": fields,
                     "source": document.source,
                 }
@@ -82,7 +87,7 @@ def _build_search_text(
     return (
         f"{document_type} document.\n"
         f"Supplier: {_field_value(fields.get('supplier'))}\n"
-        f"Invoice Number: {_field_value(fields.get('invoice_number'))}\n"
+        f"Invoice / Order No.: {_field_value(fields.get('invoice_number'))}\n"
         f"Date: {_field_value(fields.get('date'))}\n"
         f"Amount: {_field_value(fields.get('amount'))}\n\n"
         f"Relevant Content:\n{clean_content}"
@@ -91,6 +96,20 @@ def _build_search_text(
 
 def _field_value(value: object) -> str:
     return "" if value in (None, "") else str(value)
+
+
+def _classify_document(
+    classifier: DocumentClassifier,
+    text: str,
+) -> dict[str, object]:
+    if hasattr(classifier, "classify_with_confidence"):
+        return classifier.classify_with_confidence(text)
+
+    return {
+        "label": classifier.classify(text),
+        "confidence": None,
+        "confidence_source": None,
+    }
 
 
 if __name__ == "__main__":

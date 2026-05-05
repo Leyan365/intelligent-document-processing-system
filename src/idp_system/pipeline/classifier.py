@@ -76,6 +76,43 @@ def predict_document_type(text: str, model: Pipeline | None = None) -> str:
     return str(model.predict([text])[0])
 
 
+def predict_document_type_with_confidence(
+    text: str,
+    model: Pipeline | None = None,
+) -> dict[str, float | str | None]:
+    """Predict document type and expose model confidence when available."""
+    if not text or not text.strip():
+        raise ValueError("text is required for prediction")
+
+    heuristic_type = heuristic_document_type(text)
+    if heuristic_type:
+        return {
+            "label": heuristic_type,
+            "confidence": None,
+            "confidence_source": "heuristic",
+        }
+
+    global _cached_model
+
+    if model is None:
+        if _cached_model is None:
+            _cached_model = train_example_classifier()
+        model = _cached_model
+
+    label = str(model.predict([text])[0])
+    confidence = None
+    if hasattr(model, "predict_proba"):
+        probabilities = model.predict_proba([text])[0]
+        classes = list(model.classes_)
+        confidence = float(probabilities[classes.index(label)])
+
+    return {
+        "label": label,
+        "confidence": confidence,
+        "confidence_source": "model" if confidence is not None else None,
+    }
+
+
 def heuristic_document_type(text: str) -> str | None:
     """Return a type for strong business-document signals, else None."""
     normalized = " ".join(text.lower().split())
@@ -140,6 +177,9 @@ class DocumentClassifier:
 
     def classify(self, text: str) -> str:
         return predict_document_type(text, self.model)
+
+    def classify_with_confidence(self, text: str) -> dict[str, float | str | None]:
+        return predict_document_type_with_confidence(text, self.model)
 
     def save(self, path: str | Path) -> Path:
         return save_model(self.model, path)

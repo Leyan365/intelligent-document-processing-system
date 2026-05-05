@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
+import re
 from typing import Any
 from uuid import uuid4
 
@@ -64,9 +65,9 @@ def render_upload_page() -> None:
 
     if uploaded_file is None:
         with st.container(border=True):
-            st.markdown("**No document selected**")
-            st.write("Supported formats: PDF, PNG, JPG, and JPEG.")
-            st.write("After upload, use **Process Document** to run the local IDP pipeline.")
+            st.markdown("**📄 No document uploaded yet**")
+            st.write("Upload a PDF or image to start processing.")
+            st.caption("Supported formats: PDF, PNG, JPG, and JPEG.")
         return
 
     with st.container(border=True):
@@ -100,6 +101,7 @@ def render_upload_page() -> None:
             _render_stages(stages, active_index=4)
             progress.progress(100, text="Complete")
 
+            st.toast("Document processed successfully")
             st.success("Document processed successfully.")
             render_result(result)
         except Exception as exc:
@@ -123,7 +125,7 @@ def render_result(result: dict[str, Any]) -> None:
     with right:
         with st.container(border=True):
             st.markdown("**Document Type**")
-            _badge(str(result.get("type") or "unknown"))
+            _badge(_classification_label(result))
 
         st.markdown("**Extracted Fields**")
         field_cols = st.columns(2)
@@ -138,7 +140,7 @@ def render_result(result: dict[str, Any]) -> None:
         for index, field_name in enumerate(("invoice_number", "date", "amount", "supplier")):
             with field_cols[index % 2]:
                 label = FIELD_LABELS.get(field_name, field_name.replace("_", " ").title())
-                _field_card(label, fields.get(field_name))
+                _editable_field_card(result, field_name, label)
 
 
 def render_search_page() -> None:
@@ -171,7 +173,7 @@ def render_search_page() -> None:
         return
 
     if not results:
-        st.warning("No matching documents found.")
+        st.warning("No matching documents found. Try a different query.")
         return
 
     st.subheader("Search Results")
@@ -181,11 +183,13 @@ def render_search_page() -> None:
             fields = _fields_from_result(result)
             metadata = result.get("metadata") or {}
             doc_type = result.get("type") or metadata.get("type") or "unknown"
+            confidence = result.get("confidence", metadata.get("confidence"))
+            confidence_source = result.get("confidence_source", metadata.get("confidence_source"))
 
             header_left, header_right = st.columns([3, 1])
             with header_left:
                 st.markdown(f"**#{rank} - {result.get('id', 'unknown')}**")
-                _badge(str(doc_type))
+                _badge(_classification_label_text(doc_type, confidence, confidence_source))
             with header_right:
                 st.metric("Similarity Score", _format_score(result.get("score")))
 
@@ -205,7 +209,7 @@ def render_search_page() -> None:
             )
 
             st.markdown("**Matched Preview**")
-            st.write(_snippet(str(result.get("text", "")), 200))
+            st.markdown(_highlight_query(_snippet(str(result.get("text", "")), 200), query))
 
 
 def render_history_page() -> None:
@@ -213,7 +217,7 @@ def render_history_page() -> None:
     history = st.session_state.processed_history
 
     if not history:
-        st.info("No processed documents yet.")
+        st.info("📂 No processed documents yet\n\nProcess your first document to see results here.")
         return
 
     rows = []
@@ -239,7 +243,13 @@ def render_history_page() -> None:
             top_left, top_right = st.columns([3, 1])
             with top_left:
                 st.markdown(f"**{document.get('id')}**")
-                _badge(str(document.get("type") or "unknown"))
+                _badge(
+                    _classification_label_text(
+                        document.get("type"),
+                        document.get("confidence"),
+                        document.get("confidence_source"),
+                    )
+                )
             with top_right:
                 st.markdown("`Processed`")
             cols = st.columns(3)
@@ -268,11 +278,11 @@ def _render_stages(container: Any, active_index: int) -> None:
     lines = []
     for index, stage_name in enumerate(stage_names):
         if index < active_index:
-            marker = "[done]"
+            marker = "✔"
         elif index == active_index:
-            marker = "[running]"
+            marker = "⏳"
         else:
-            marker = "[pending]"
+            marker = "○"
         lines.append(f"{marker} {stage_name}")
     container.code("\n".join(lines), language="text")
 
@@ -282,10 +292,18 @@ def _snippet(text: str, length: int = 500) -> str:
     return text[:length] + ("..." if len(text) > length else "")
 
 
-def _field_card(label: str, value: Any) -> None:
+def _editable_field_card(result: dict[str, Any], field_name: str, label: str) -> None:
+    fields = result.setdefault("fields", {})
+    document_id = result.get("id", "document")
     with st.container(border=True):
         st.caption(label)
-        st.markdown(f"`{_display_value(value)}`")
+        updated_value = st.text_input(
+            label,
+            value="" if fields.get(field_name) is None else str(fields.get(field_name)),
+            key=f"{document_id}_{field_name}",
+            label_visibility="collapsed",
+        )
+        fields[field_name] = updated_value or None
 
 
 def _badge(value: str) -> None:
@@ -294,6 +312,39 @@ def _badge(value: str) -> None:
         f"background:#eef2ff;color:#1f2937;font-weight:600;font-size:0.9rem;'>{value}</span>",
         unsafe_allow_html=True,
     )
+
+
+def _classification_label(result: dict[str, Any]) -> str:
+    return _classification_label_text(
+        result.get("type"),
+        result.get("confidence"),
+        result.get("confidence_source"),
+    )
+
+
+def _classification_label_text(
+    document_type: Any,
+    confidence: Any = None,
+    confidence_source: Any = None,
+) -> str:
+    label = _document_type_label(document_type)
+    if confidence_source == "heuristic":
+        return f"{label} — heuristic match"
+    if confidence is not None:
+        try:
+            return f"{label} — {float(confidence) * 100:.1f}% confident"
+        except (TypeError, ValueError):
+            return label
+    return label
+
+
+def _document_type_label(document_type: Any) -> str:
+    labels = {
+        "invoice": "Invoice",
+        "receipt": "Receipt",
+        "purchase_order": "Purchase Order",
+    }
+    return labels.get(str(document_type), str(document_type or "Unknown").replace("_", " ").title())
 
 
 def _fields_from_result(result: dict[str, Any]) -> dict[str, Any]:
@@ -326,6 +377,23 @@ def _format_bytes(size: int | None) -> str:
     if size < 1024 * 1024:
         return f"{size / 1024:.1f} KB"
     return f"{size / (1024 * 1024):.1f} MB"
+
+
+def _highlight_query(text: str, query: str) -> str:
+    highlighted = text
+    terms = sorted(
+        {term.strip(".,;:!?()[]{}").lower() for term in query.split() if len(term.strip()) >= 3},
+        key=len,
+        reverse=True,
+    )
+    for term in terms:
+        highlighted = re.sub(
+            rf"\b({re.escape(term)})\b",
+            r"**\1**",
+            highlighted,
+            flags=re.IGNORECASE,
+        )
+    return highlighted
 
 
 if __name__ == "__main__":
