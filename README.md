@@ -28,3 +28,9 @@ file is available:
 ```powershell
 $env:PYTHONPATH="src"; python scripts/extract_text_sample.py path\to\sample.pdf
 ```
+
+Run the Streamlit dashboard:
+
+```powershell
+$env:PYTHONPATH="src"; streamlit run src/idp_system/ui/streamlit_app.py
+```

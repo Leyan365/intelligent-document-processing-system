@@ -16,3 +16,5 @@ sample.pdf
 
 models/
 *.joblib
+
+temp_uploads/
