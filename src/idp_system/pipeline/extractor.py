@@ -9,7 +9,7 @@ from typing import Any
 FIELD_NAMES = ("invoice_number", "date", "amount", "supplier")
 
 INVOICE_NUMBER_PATTERN = re.compile(
-    r"\b(?:invoice\s*(?:no|number|#)?\s*[:\-]?\s*)?((?:INV|PO)-?\d{3,})\b",
+    r"\b(?:(?:invoice|order|po)\s*(?:no|number|#)?\s*[:\-]?\s*)?((?:INV|PO)-?\d{3,})\b",
     re.IGNORECASE,
 )
 AMOUNT_PATTERN = re.compile(
@@ -23,19 +23,25 @@ LABELED_AMOUNT_PATTERN = re.compile(
 )
 DATE_PATTERN = re.compile(
     r"\b(?:\d{4}[-/]\d{1,2}[-/]\d{1,2}|\d{1,2}[-/]\d{1,2}[-/]\d{2,4}|"
+    r"\d{1,2}-(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)[a-z]*-?\d{4}|"
     r"(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)[a-z]*\.?\s+\d{1,2},?\s+\d{4}|"
     r"\d{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)[a-z]*\.?\s+\d{4})\b",
     re.IGNORECASE,
 )
 LABELED_DATE_PATTERN = re.compile(
-    r"\b(?:invoice\s+date|order\s+date|issued\s+date|date)\b\s*[:\-]?\s*"
+    r"\b(?:invoice\s+date|order\s+date|issued\s+date|po\s+date|date)\b\s*[:\-]?\s*"
     r"(\d{4}[-/]\d{1,2}[-/]\d{1,2}|\d{1,2}[-/]\d{1,2}[-/]\d{2,4}|"
+    r"\d{1,2}-(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)[a-z]*-?\d{4}|"
     r"(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)[a-z]*\.?\s+\d{1,2},?\s+\d{4}|"
     r"\d{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)[a-z]*\.?\s+\d{4})",
     re.IGNORECASE,
 )
 SUPPLIER_LABEL_PATTERN = re.compile(
-    r"\b(?:supplier|vendor|from|bill\s+from)\s*[:\-]\s*(.+)",
+    r"\b(?:supplier\s+name|supplier|vendor|from|bill\s+from)\s*[:\-]\s*(.+)",
+    re.IGNORECASE,
+)
+SUPPLIER_CODE_PATTERN = re.compile(
+    r"\bsupplier\s+\d{2,}\s+(.+?)(?=\s+(?:supplier\s+address|address|ship\s+to|buyer|delivery\s+address|order\s+number|order\s+date)\b|$)",
     re.IGNORECASE,
 )
 
@@ -128,10 +134,22 @@ def _extract_supplier(text: str, doc: Any | None) -> str | None:
 
 
 def _extract_supplier_from_label(text: str) -> str | None:
+    compact_text = " ".join(text.split())
+    code_match = SUPPLIER_CODE_PATTERN.search(compact_text)
+    if code_match:
+        value = _clean_value(code_match.group(1))
+        if _is_plausible_supplier(value):
+            return value
+
     for line in text.splitlines():
         match = SUPPLIER_LABEL_PATTERN.search(line)
         if match:
-            value = re.split(r"\s{2,}|\t|,?\s+(?:date|invoice|total)\b", match.group(1), maxsplit=1, flags=re.IGNORECASE)[0]
+            value = re.split(
+                r"\s{2,}|\t|,?\s+(?:date|invoice|total|supplier\s+address|address|ship\s+to|buyer|delivery\s+address|order\s+number|order\s+date)\b",
+                match.group(1),
+                maxsplit=1,
+                flags=re.IGNORECASE,
+            )[0]
             value = _clean_value(value)
             if _is_plausible_supplier(value):
                 return value
@@ -167,6 +185,8 @@ def _is_plausible_date(value: str | None) -> bool:
         "%m/%d/%Y",
         "%d-%m-%Y",
         "%m-%d-%Y",
+        "%d-%b-%Y",
+        "%d-%B-%Y",
         "%d/%m/%y",
         "%m/%d/%y",
         "%B %d, %Y",
@@ -209,6 +229,20 @@ def _is_plausible_supplier(value: str | None) -> bool:
         return False
     if re.fullmatch(r"[A-Z0-9/().\-]+", cleaned, re.IGNORECASE):
         return False
+    lowered = cleaned.lower()
+    if any(
+        marker in lowered
+        for marker in (
+            "export processing zone",
+            "processing zone",
+            "industrial zone",
+            "ship to",
+            "buyer",
+            "delivery address",
+            "address",
+        )
+    ):
+        return False
     alnum_chars = [char for char in cleaned if char.isalnum()]
     if not alnum_chars:
         return False
@@ -238,6 +272,13 @@ def _load_spacy_model() -> Any | None:
 
 
 if __name__ == "__main__":
+    po_text = (
+        "Pro-forma Purchase Order Supplier 116451 Screenline (Pvt) Ltd "
+        "Supplier Address No.18/4, Thalwatha, Gonawala Kelaniya "
+        "Order Number PO10042153 Order Date 21-Jan-2026 Total 5,746.60 "
+        "Ship To Ansell Lanka (Pvt) Ltd Biyagama Export Processing Zone"
+    )
+    print(extract_fields(po_text))
     sample_text = """
     Supplier: Acme Office Supplies
     Invoice No: INV-123

@@ -193,7 +193,7 @@ def render_search_page() -> None:
                 f"**Amount**  \n`{_display_value(fields.get('amount'))}`"
             )
             info_cols[3].markdown(
-                f"**Invoice No.**  \n`{_display_value(fields.get('invoice_number'))}`"
+                f"**Invoice / Order No.**  \n`{_display_value(fields.get('invoice_number'))}`"
             )
 
             st.markdown("**Matched Preview**")

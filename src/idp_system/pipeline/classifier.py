@@ -1,6 +1,7 @@
 """Local document classification with TF-IDF and Logistic Regression."""
 
 from pathlib import Path
+import re
 
 import joblib
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -61,6 +62,10 @@ def predict_document_type(text: str, model: Pipeline | None = None) -> str:
     if not text or not text.strip():
         raise ValueError("text is required for prediction")
 
+    heuristic_type = heuristic_document_type(text)
+    if heuristic_type:
+        return heuristic_type
+
     global _cached_model
 
     if model is None:
@@ -69,6 +74,44 @@ def predict_document_type(text: str, model: Pipeline | None = None) -> str:
         model = _cached_model
 
     return str(model.predict([text])[0])
+
+
+def heuristic_document_type(text: str) -> str | None:
+    """Return a type for strong business-document signals, else None."""
+    normalized = " ".join(text.lower().split())
+
+    purchase_order_score = sum(
+        signal in normalized
+        for signal in (
+            "pro-forma purchase order",
+            "purchase order",
+            "order number",
+        )
+    )
+    if re_search(r"\bpo-?\d{3,}\b", normalized):
+        purchase_order_score += 1
+    if purchase_order_score >= 1:
+        return "purchase_order"
+
+    invoice_score = sum(
+        signal in normalized
+        for signal in ("invoice no", "invoice number", "tax invoice", "invoice date")
+    )
+    if invoice_score >= 1:
+        return "invoice"
+
+    receipt_score = sum(
+        signal in normalized
+        for signal in ("receipt", "cashier", "amount paid")
+    )
+    if receipt_score >= 1:
+        return "receipt"
+
+    return None
+
+
+def re_search(pattern: str, text: str) -> bool:
+    return re.search(pattern, text, re.IGNORECASE) is not None
 
 
 def save_model(model: Pipeline, path: str | Path) -> Path:
@@ -110,3 +153,9 @@ if __name__ == "__main__":
     classifier = train_example_classifier()
     sample = "Invoice INV-204 contains supplier name, due date, tax, and total amount."
     print(predict_document_type(sample, classifier))
+    po_sample = (
+        "Pro-forma Purchase Order Supplier 116451 Screenline (Pvt) Ltd "
+        "Supplier Address No.18/4, Thalwatha, Gonawala Kelaniya "
+        "Order Number PO10042153 Order Date 21-Jan-2026 Total 5,746.60"
+    )
+    print(predict_document_type(po_sample, classifier))
