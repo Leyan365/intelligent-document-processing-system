@@ -18,3 +18,5 @@ models/
 *.joblib
 
 temp_uploads/
+
+data/
