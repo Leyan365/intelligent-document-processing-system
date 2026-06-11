@@ -237,7 +237,22 @@ def _extract_po_number(text: str) -> str | None:
         value = _first_regex_group(pattern, text)
         if value:
             return re.sub(r"\s+", "", value).lstrip("#-")
-    return None
+    return _extract_po_number_before_label(text)
+
+
+def _extract_po_number_before_label(text: str) -> str | None:
+    compact_text = " ".join(text.split())
+    label_match = re.search(r"\bpo\s+number\b", compact_text, flags=re.IGNORECASE)
+    if not label_match:
+        return None
+
+    window = compact_text[max(0, label_match.start() - 80) : label_match.start()]
+    candidates = [
+        match.group(0)
+        for match in re.finditer(r"\b\d{6,}\b", window)
+        if not _is_plausible_date(match.group(0))
+    ]
+    return candidates[-1] if candidates else None
 
 
 def _extract_date(text: str, doc: Any | None) -> str | None:
@@ -648,8 +663,14 @@ if __name__ == "__main__":
     SUPPLIER: SCREENLINE (PVT) LTD-1007037
     Item Unit Price 17.52
     """
+    compact_po_text = """
+    ORIGINAL 5380034300 25.01.2026 PO Number : PO Creation Date :
+    PURCHASE ORDER
+    SUPPLIER: SCREENLINE (PVT) LTD-1007037
+    """
     print(heuristic_document_type(invoice_text))
     print(extract_fields(po_text, "purchase_order"))
+    print(extract_fields(compact_po_text, "purchase_order"))
     print(extract_fields(noisy_receipt_text, "receipt"))
     print(extract_fields(receipt_text, "receipt"))
     print(extract_fields(invoice_text, "invoice"))

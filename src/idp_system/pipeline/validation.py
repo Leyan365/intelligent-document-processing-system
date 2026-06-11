@@ -208,7 +208,7 @@ def _validate_field(field_name: str, value: Any, document_type: str) -> dict[str
 
     if value in (None, ""):
         if field_name == "invoice_number" and document_type != "receipt":
-            warnings.append(f"{field_name} is missing.")
+            warnings.append(_missing_number_warning(document_type))
         elif field_name in {"date", "amount", "supplier"}:
             warnings.append(f"{field_name} is missing.")
         return _field_result(value, valid, warnings, critical_warnings)
@@ -243,6 +243,14 @@ def _field_result(
         "warnings": warnings + critical_warnings,
         "critical_warnings": critical_warnings,
     }
+
+
+def _missing_number_warning(document_type: str) -> str:
+    if document_type == "purchase_order":
+        return "purchase order number is missing."
+    if document_type == "invoice":
+        return "invoice number is missing."
+    return "document number is missing."
 
 
 def _valid_date(value: str) -> bool:
@@ -351,7 +359,27 @@ if __name__ == "__main__":
             "supplier": "Bill To",
         },
     )
+    po_number_present = validate_fields(
+        "purchase_order",
+        {
+            "invoice_number": "5380034300",
+            "date": "25.01.2026",
+            "amount": None,
+            "supplier": "SCREENLINE (PVT) LTD",
+        },
+    )
+    receipt_missing_number = validate_fields(
+        "receipt",
+        {
+            "invoice_number": None,
+            "date": "07/05/2026",
+            "amount": "Rs. 13,500.00",
+            "supplier": "Quantum Logic Solutions",
+        },
+    )
     print("clean_invoice:", clean_invoice["pipeline_status"], clean_invoice["validation_score"])
     print("noisy_ocr:", noisy_ocr["pipeline_status"], noisy_ocr["validation_score"])
     print("low_confidence:", low_confidence["status"], low_confidence["warnings"])
     print("invalid_supplier:", invalid_supplier["status"], invalid_supplier["warnings"])
+    print("po_number_present:", po_number_present["status"], po_number_present["warnings"])
+    print("receipt_missing_number:", receipt_missing_number["status"], receipt_missing_number["warnings"])

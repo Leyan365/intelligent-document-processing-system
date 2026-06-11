@@ -135,13 +135,19 @@ def heuristic_document_type(text: str) -> str | None:
         signal in normalized
         for signal in (
             "receipt",
+            "receipt #",
+            "receipt date",
             "cashier",
+            "paid amount",
             "amount paid",
             "cash bill",
             "change",
             "total items",
+            "total qty",
+            "total oty",
             "receipt no",
             "payment mode",
+            "tender",
         )
     )
 
@@ -161,11 +167,11 @@ def heuristic_document_type(text: str) -> str | None:
         invoice_score += 2
     if "subtotal" in normalized and "total" in normalized:
         invoice_score += 1
-    if invoice_score >= 1 and not _looks_like_receipt_tax_invoice(normalized, receipt_score):
-        return "invoice"
-
     if receipt_score >= 1:
         return "receipt"
+
+    if invoice_score >= 1 and not _looks_like_receipt_tax_invoice(normalized, receipt_score):
+        return "invoice"
 
     if "tax invoice" in normalized:
         invoice_score += 1
@@ -240,6 +246,11 @@ if __name__ == "__main__":
     classifier = train_example_classifier()
     sample = "Invoice INV-204 contains supplier name, due date, tax, and total amount."
     print(predict_document_type(sample, classifier))
+    receipt_sample = (
+        "Company Name: Quantum Logic Solutions RECEIPT Address Bill To "
+        "Receipt # 100 Receipt Date 07/05/2026 TOTAL Rs. 13,500.00"
+    )
+    print(predict_document_type(receipt_sample, classifier))
     po_sample = (
         "Pro-forma Purchase Order Supplier 116451 Screenline (Pvt) Ltd "
         "Supplier Address No.18/4, Thalwatha, Gonawala Kelaniya "
