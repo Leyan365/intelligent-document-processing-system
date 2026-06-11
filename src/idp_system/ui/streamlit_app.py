@@ -142,6 +142,45 @@ def render_result(result: dict[str, Any]) -> None:
                 label = FIELD_LABELS.get(field_name, field_name.replace("_", " ").title())
                 _editable_field_card(result, field_name, label)
 
+        render_validation_section(result)
+
+
+def render_validation_section(result: dict[str, Any]) -> None:
+    validation = result.get("validation")
+    if not isinstance(validation, dict):
+        return
+
+    with st.container(border=True):
+        st.markdown("**Validation & Confidence**")
+        pipeline_status = str(validation.get("pipeline_status", "processed"))
+        _status_badge(_pipeline_status_label(pipeline_status), pipeline_status)
+
+        score = validation.get("validation_score")
+        total_warnings = validation.get("total_warnings", 0)
+        critical_count = validation.get("critical_warning_count", 0)
+        st.caption(
+            f"Score: {_display_value(score)} | "
+            f"Warnings: {total_warnings} | Critical: {critical_count}"
+        )
+
+        status_cols = st.columns(3)
+        status_cols[0].caption(
+            f"OCR quality: {_component_status(validation.get('ocr_quality'))}"
+        )
+        status_cols[1].caption(
+            f"Classification: {_component_status(validation.get('classification'))}"
+        )
+        status_cols[2].caption(
+            f"Fields: {_component_status(validation.get('fields'))}"
+        )
+
+        warnings = validation.get("warnings")
+        if isinstance(warnings, list) and warnings:
+            shown = [str(warning) for warning in warnings[:4]]
+            st.caption("Warnings: " + " | ".join(shown))
+            if len(warnings) > len(shown):
+                st.caption(f"+ {len(warnings) - len(shown)} more")
+
 
 def render_search_page() -> None:
     st.header("Search")
@@ -312,6 +351,39 @@ def _badge(value: str) -> None:
         f"background:#eef2ff;color:#1f2937;font-weight:600;font-size:0.9rem;'>{value}</span>",
         unsafe_allow_html=True,
     )
+
+
+def _status_badge(value: str, status: str) -> None:
+    background, color = _status_colors(status)
+    st.markdown(
+        f"<span style='display:inline-block;padding:0.2rem 0.55rem;border-radius:0.35rem;"
+        f"background:{background};color:{color};font-weight:600;font-size:0.9rem;'>{value}</span>",
+        unsafe_allow_html=True,
+    )
+
+
+def _status_colors(status: str) -> tuple[str, str]:
+    normalized = str(status).lower()
+    if normalized in {"processed", "pass"}:
+        return "#dcfce7", "#166534"
+    if normalized in {"needs_review", "fail"}:
+        return "#fee2e2", "#991b1b"
+    return "#fef3c7", "#92400e"
+
+
+def _pipeline_status_label(status: str) -> str:
+    labels = {
+        "processed": "Processed",
+        "processed_with_warnings": "Processed with warnings",
+        "needs_review": "Needs review",
+    }
+    return labels.get(status, status.replace("_", " ").title())
+
+
+def _component_status(component: Any) -> str:
+    if isinstance(component, dict):
+        return str(component.get("status", "unknown")).replace("_", " ").title()
+    return "Unknown"
 
 
 def _classification_label(result: dict[str, Any]) -> str:

@@ -8,6 +8,7 @@ from .pipeline.classifier import DocumentClassifier
 from .pipeline.extractor import InformationExtractor
 from .pipeline.loader import DocumentLoaderRouter
 from .pipeline.search import SemanticSearchService
+from .pipeline.validation import validate_pipeline
 
 
 class IDPSystem:
@@ -43,6 +44,16 @@ class IDPSystem:
         classification = _classify_document(self.classifier, document.content)
         document_type = str(classification["label"])
         fields = self.extractor.extract(document.content, document_type)
+        validation_metadata = dict(document.metadata)
+        validation_metadata["extraction_method"] = document.extraction_method
+        validation = validate_pipeline(
+            text=document.content,
+            metadata=validation_metadata,
+            document_type=document_type,
+            classification_confidence=classification.get("confidence"),
+            confidence_source=classification.get("confidence_source"),
+            fields=fields,
+        )
 
         processed_document = {
             "id": document.id,
@@ -51,6 +62,7 @@ class IDPSystem:
             "confidence": classification.get("confidence"),
             "confidence_source": classification.get("confidence_source"),
             "fields": fields,
+            "validation": validation,
         }
 
         self.processed_documents[document.id] = processed_document
