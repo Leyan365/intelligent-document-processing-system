@@ -10,6 +10,7 @@ from sklearn.pipeline import Pipeline
 
 # simple in-process cache for the default model
 _cached_model: Pipeline | None = None
+DEFAULT_MODEL_PATH = Path("models") / "document_classifier.joblib"
 
 SUPPORTED_DOCUMENT_TYPES = ("invoice", "receipt", "purchase_order")
 
@@ -70,7 +71,7 @@ def predict_document_type(text: str, model: Pipeline | None = None) -> str:
 
     if model is None:
         if _cached_model is None:
-            _cached_model = train_example_classifier()
+            _cached_model = load_default_model()
         model = _cached_model
 
     return str(model.predict([text])[0])
@@ -96,7 +97,7 @@ def predict_document_type_with_confidence(
 
     if model is None:
         if _cached_model is None:
-            _cached_model = train_example_classifier()
+            _cached_model = load_default_model()
         model = _cached_model
 
     label = str(model.predict([text])[0])
@@ -130,21 +131,53 @@ def heuristic_document_type(text: str) -> str | None:
     if purchase_order_score >= 1:
         return "purchase_order"
 
-    invoice_score = sum(
-        signal in normalized
-        for signal in ("invoice no", "invoice number", "tax invoice", "invoice date")
-    )
-    if invoice_score >= 1:
-        return "invoice"
-
     receipt_score = sum(
         signal in normalized
-        for signal in ("receipt", "cashier", "amount paid")
+        for signal in (
+            "receipt",
+            "cashier",
+            "amount paid",
+            "cash bill",
+            "change",
+            "total items",
+            "receipt no",
+            "payment mode",
+        )
     )
+
+    invoice_score = sum(
+        signal in normalized
+        for signal in (
+            "invoice #",
+            "invoice no",
+            "invoice number",
+            "invoice date",
+            "balance due",
+            "amount due",
+            "subtotal",
+        )
+    )
+    if "bill to" in normalized and "ship to" in normalized:
+        invoice_score += 2
+    if "subtotal" in normalized and "total" in normalized:
+        invoice_score += 1
+    if invoice_score >= 1 and not _looks_like_receipt_tax_invoice(normalized, receipt_score):
+        return "invoice"
+
     if receipt_score >= 1:
         return "receipt"
 
+    if "tax invoice" in normalized:
+        invoice_score += 1
+    if invoice_score >= 1:
+        return "invoice"
+
     return None
+
+
+def _looks_like_receipt_tax_invoice(normalized_text: str, receipt_score: int) -> bool:
+    """Keep POS-style tax invoices classified as receipts."""
+    return "tax invoice" in normalized_text and receipt_score >= 1
 
 
 def re_search(pattern: str, text: str) -> bool:
@@ -164,6 +197,20 @@ def load_model(path: str | Path) -> Pipeline:
     return joblib.load(Path(path))
 
 
+def load_default_model() -> Pipeline:
+    """Load the trained local classifier, falling back to the example model."""
+    model_path = DEFAULT_MODEL_PATH
+    if model_path.exists():
+        try:
+            return load_model(model_path)
+        except Exception as exc:
+            print(
+                f"Warning: failed to load {model_path}: {type(exc).__name__}: {exc}. "
+                "Using example classifier fallback."
+            )
+    return train_example_classifier()
+
+
 def train_example_classifier() -> Pipeline:
     """Train a tiny in-file classifier for smoke testing."""
     return train_classifier(EXAMPLE_TEXTS, EXAMPLE_LABELS)
@@ -173,7 +220,7 @@ class DocumentClassifier:
     """Thin object-oriented wrapper around the local classifier pipeline."""
 
     def __init__(self, model: Pipeline | None = None) -> None:
-        self.model = model or train_example_classifier()
+        self.model = model or load_default_model()
 
     def classify(self, text: str) -> str:
         return predict_document_type(text, self.model)
