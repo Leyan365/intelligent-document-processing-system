@@ -11,6 +11,8 @@ for the main pipeline stages:
   checks when local data is available.
 - `evaluation/extraction_eval.py` for approximate extraction checks on FUNSD
   samples when local data is available.
+- `evaluation/search_eval.py` for semantic search evaluation with Precision@K,
+  Recall@K, MRR@K, and NDCG@K.
 - Extraction smoke tests through the document-type-aware extractor examples.
 - Validation boundary smoke tests through `validation.py` examples covering
   clean, noisy, low-confidence, and invalid-field cases.
@@ -33,30 +35,35 @@ pipeline reliability visible to the reviewer.
 
 ## Lecturer Feedback Still Planned
 
-- Formal semantic search metrics with MRR and NDCG.
+- Repeat semantic search evaluation using the production SBERT + FAISS
+  environment.
 - CPU feasibility benchmark with stage-level latency.
 - Layout-aware feature comparison against the current text-only classifier.
 - Optional Tesseract OCR baseline or fallback comparison.
 
 ## Phase 12: Semantic Search Evaluation
 
-Planned implementation:
+Evaluation framework implemented:
 
 ```text
 evaluation/search_eval.py
 ```
 
-Expected work:
+Implemented work:
 
-- Build a small relevance dataset with queries and expected relevant document
+- Built a small relevance dataset with queries and expected relevant document
   IDs.
-- Index the evaluation documents through the existing semantic search service.
-- Run each query at fixed `k` values.
-- Compute Precision@K, Recall@K, MRR@K, and NDCG@K.
-- Report aggregate metrics and per-query failures for dissertation analysis.
+- Indexed the evaluation documents through the existing semantic search service.
+- Ran each query at fixed `k` values.
+- Computed Precision@K, Recall@K, MRR@K, and NDCG@K.
+- Reported aggregate metrics and weak-performing queries for dissertation
+  analysis.
 
 This will turn the existing semantic search feature into a measurable retrieval
 component rather than a UI-only capability.
+
+Future work: repeat the evaluation using the production SBERT + FAISS
+environment.
 
 ## Phase 13: CPU Latency Benchmark
 
