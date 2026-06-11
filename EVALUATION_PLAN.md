@@ -13,6 +13,8 @@ for the main pipeline stages:
   samples when local data is available.
 - `evaluation/search_eval.py` for semantic search evaluation with Precision@K,
   Recall@K, MRR@K, and NDCG@K.
+- `evaluation/latency_eval.py` for CPU latency benchmarking with per-stage
+  timings and aggregate runtime statistics.
 - Extraction smoke tests through the document-type-aware extractor examples.
 - Validation boundary smoke tests through `validation.py` examples covering
   clean, noisy, low-confidence, and invalid-field cases.
@@ -37,7 +39,8 @@ pipeline reliability visible to the reviewer.
 
 - Repeat semantic search evaluation using the production SBERT + FAISS
   environment.
-- CPU feasibility benchmark with stage-level latency.
+- Repeat CPU latency benchmarks with real PDFs/images in a full production
+  dependency environment.
 - Layout-aware feature comparison against the current text-only classifier.
 - Optional Tesseract OCR baseline or fallback comparison.
 
@@ -67,7 +70,13 @@ environment.
 
 ## Phase 13: CPU Latency Benchmark
 
-Planned benchmark stages:
+Benchmark framework implemented:
+
+```text
+evaluation/latency_eval.py
+```
+
+Implemented benchmark stages:
 
 - file loading and text extraction;
 - OCR fallback where applicable;
@@ -78,10 +87,11 @@ Planned benchmark stages:
 - FAISS indexing;
 - end-to-end processing time.
 
-Expected output should include per-document timings, averages, and slowest-stage
-analysis. The goal is to support the dissertation claim that the system is
-feasible for local CPU-first processing and to identify the largest latency
-bottlenecks.
+The script reports per-document timings, averages, median/min/max total runtime,
+slowest document, slowest stage, CSV output when requested, and skipped
+dependency warnings. Future work should repeat file-mode benchmarking with real
+PDF/image samples in an environment where PyMuPDF, PaddleOCR,
+sentence-transformers, and FAISS are installed.
 
 ## Phase 14: Layout-Aware Feature Comparison
 
