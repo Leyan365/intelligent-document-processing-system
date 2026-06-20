@@ -4,8 +4,10 @@
 
 The project is a local-first Intelligent Document Processing pipeline for
 business documents. It avoids external LLM APIs and keeps extraction,
-classification, validation, semantic indexing, and display within the local
-Python application.
+classification, validation, semantic indexing, evaluation, and display within
+the local Python application.
+
+Current implemented pipeline:
 
 ```text
 Document upload
@@ -17,8 +19,22 @@ Document upload
 -> Streamlit display
 ```
 
+Planned persistence pipeline:
+
+```text
+Authenticated user
+-> upload
+-> SHA-256 file hash check
+-> duplicate detection
+-> processing or reuse existing record
+-> database save
+-> search indexing/display
+```
+
 The integrated pipeline is coordinated by `IDPSystem` in
-`src/idp_system/system.py`.
+`src/idp_system/system.py`. Authentication, persistent storage, and duplicate
+upload protection are planned application-level layers around the current core
+pipeline.
 
 ## Major Components
 
@@ -46,8 +62,11 @@ The integrated pipeline is coordinated by `IDPSystem` in
   validation, processed-document storage, and semantic indexing.
 - `streamlit_app.py`: Provides the upload, result review, validation display,
   semantic search, and history UI.
+- `evaluation/`: Contains evaluation scripts for classification/extraction
+  sanity checks, semantic search MRR/NDCG, CPU latency, and layout-aware
+  classification comparison.
 
-## Data Flow
+## Current Data Flow
 
 1. A user uploads a document through Streamlit.
 2. The file is saved temporarily and passed to `IDPSystem.process_document`.
@@ -61,6 +80,47 @@ The integrated pipeline is coordinated by `IDPSystem` in
    extracted field reliability.
 8. The processed document is added to the FAISS-backed semantic search service.
 9. Streamlit displays extracted fields, validation results, search, and history.
+
+Current processed-document storage is in-memory/session-based for prototype
+review.
+
+## Planned Authentication And Persistence Layer
+
+The next implementation phase should add authentication and persistent document
+storage without changing the core IDP model behavior. A local SQLite database is
+recommended first for dissertation/demo reliability, with table names and field
+semantics kept portable to MySQL if the original proposal must be followed
+strictly.
+
+Planned database tables:
+
+- `users`: login identity and password/session metadata.
+- `documents`: uploaded document metadata, owner, source filename, file hash,
+  processing status, timestamps, and storage references.
+- `classifications`: predicted document type, confidence, confidence source,
+  and classifier metadata.
+- `extracted_fields`: extracted document number, date, amount, supplier, and
+  optional normalized field values.
+- `validation_results`: pipeline status, validation score, warning counts, and
+  serialized warning details.
+- `search_index_metadata` or `embeddings_metadata`: search/index references,
+  embedding model name, vector dimension, and index/update timestamps.
+
+## Duplicate Upload Protection
+
+Duplicate protection should be implemented before processing a newly uploaded
+file:
+
+1. Read uploaded file bytes.
+2. Compute a SHA-256 hash.
+3. Store `file_hash` in the `documents` table with a unique constraint.
+4. If a user uploads the same file again, return the existing processed record
+   instead of reprocessing the document.
+5. If a duplicate belongs to another user, enforce the chosen access policy
+   through the authentication/user ownership layer.
+
+This protects CPU-heavy OCR/embedding work from unnecessary repetition and gives
+stable document identity for prototype demonstrations.
 
 ## Validation Boundary
 
@@ -98,7 +158,10 @@ Current pipeline statuses are:
 - Hybrid classification: Strong heuristic overrides are kept alongside the ML
   classifier because business documents often contain reliable keywords such as
   invoice numbers, receipt labels, and purchase order numbers.
-- Text-first extraction: Current extraction is based on OCR/text content and
-  rules. Layout-aware or spatial features are planned for future comparison.
-- In-memory search: Semantic search is useful for prototype review but is not
-  yet a persistent production search backend.
+- Evaluation-first academic scope: MRR/NDCG, CPU latency, and layout-aware
+  comparison have been added as research evidence without rewriting production
+  components.
+- Database-agnostic persistence: SQLite is preferred for fast local integration,
+  but the schema should remain portable to MySQL.
+- In-memory search: Semantic search is useful for prototype review, but search
+  metadata and document records should be persisted in the next phase.

@@ -127,3 +127,11 @@ otherwise
 
 This is suitable for the current local prototype and aligns with the practical
 goal of robust document routing for invoices, receipts, and purchase orders.
+
+## Database Integration Note
+
+The production classifier model remains local and is not retrained as part of
+planned authentication or database work. Database integration should store
+classification outputs, confidence metadata, extracted fields, validation
+results, and document/file-hash metadata. It should not retrain or overwrite the
+local model artifact.

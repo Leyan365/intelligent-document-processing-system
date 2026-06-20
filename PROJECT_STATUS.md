@@ -1,10 +1,13 @@
 # Project Status
 
-## Current Status After Phase 11B
+## Current Status After Phase 14
 
-The Intelligent Document Processing System is complete through Phase 11B. The
-current system can process invoices, receipts, and purchase orders through the
-local pipeline:
+The core IDP and evaluation pipeline is complete. The remaining implementation
+work focuses on application-level persistence, authentication, and duplicate
+protection.
+
+The current system can process invoices, receipts, and purchase orders through
+the local pipeline:
 
 ```text
 Upload document
@@ -16,9 +19,8 @@ Upload document
 -> Streamlit display
 ```
 
-The most recent work added and refined the validation boundary so the UI can
-show OCR quality, classification confidence, field-level validation, warnings,
-and an overall pipeline status.
+The project also includes formal evaluation scripts for semantic search,
+latency benchmarking, and layout-aware classification comparison.
 
 ## Completed Phases
 
@@ -40,6 +42,10 @@ and an overall pipeline status.
   cleanup.
 - Phase 11: Added validation boundary and confidence matrix.
 - Phase 11B: Improved receipt and purchase order validation reliability.
+- Phase 12: Added semantic search evaluation with Precision@K, Recall@K,
+  MRR@K, and NDCG@K.
+- Phase 13: Added CPU latency benchmark framework.
+- Phase 14: Added layout-aware classification comparison.
 
 ## Latest Working Behavior
 
@@ -55,15 +61,32 @@ and an overall pipeline status.
   in-memory query over processed documents.
 - Streamlit displays uploaded document results, extracted fields, validation
   details, search, and history.
+- `evaluation/search_eval.py` evaluates semantic search with IR metrics.
+- `evaluation/latency_eval.py` benchmarks stage-level CPU latency.
+- `evaluation/layout_feature_eval.py` compares text-only classification with
+  text plus layout-proxy features.
+
+## Release Tag
+
+- `v1.0-final-project` -> points to commit `379d0d9`.
 
 ## Recent Commits
 
 - `96b4263` Phase 11: Add validation boundary and confidence matrix.
 - `e8f34ef` Phase 11B: Improve receipt and purchase order validation
   reliability.
+- `a57b6fe` Phase 12: Add semantic search evaluation metrics.
+- `7fc7e00` Phase 13: Add CPU latency benchmark.
+- `379d0d9` Phase 14: Add layout-aware classification comparison.
 
 ## Known Limitations
 
+- Authentication is not implemented yet and is now a required next phase.
+- Persistent database storage is not implemented yet and is now a required next
+  phase.
+- Duplicate upload protection is not implemented yet and should be handled with
+  file hashing.
+- Current storage is in-memory/session-based for prototype review.
 - Validation is advisory only and does not block classification, extraction, or
   indexing.
 - The classifier's reported validation accuracy is high, but it may be inflated
@@ -72,16 +95,28 @@ and an overall pipeline status.
 - Receipt samples far outnumber purchase order samples.
 - Purchase order validation is based on a small real-PDF sample.
 - RVL-CDIP invoice text depends on OCR cache quality.
-- Semantic search has not yet been evaluated with formal relevance metrics.
-- CPU latency has not yet been measured as a formal benchmark.
-- The current classifier is text-only; layout-aware features are still planned.
+- Semantic search and latency evaluation frameworks are implemented, but
+  production SBERT/FAISS and real-file latency reruns should be performed in the
+  full dependency environment.
+
+## Changes From Original Proposal
+
+- The Flask backend was deferred in favor of a Streamlit-first implementation
+  so the ML pipeline, validation, and evaluation work could be completed and
+  demonstrated quickly.
+- Authentication and database integration were initially deferred during ML
+  pipeline development, but they are now required before final submission.
+- MySQL was proposed originally. SQLite may be used for local prototype
+  persistence if acceptable, while keeping the schema portable to MySQL.
+- BGE-M3 was reduced to Sentence-BERT/MiniLM-style local embeddings for
+  feasibility.
+- Additional academic evaluation phases were added beyond the original
+  proposal: validation matrix, MRR/NDCG evaluation, CPU latency benchmark, and
+  layout-aware classification comparison.
 
 ## Next Phases
 
-- Phase 12: Semantic search evaluation with Precision@K, Recall@K, MRR@K, and
-  NDCG@K.
-- Phase 13: CPU latency benchmark for document loading, OCR, classification,
-  extraction, validation, embeddings, and indexing.
-- Phase 14: Layout-aware feature comparison against the current text-only
-  classifier.
-- Optional: Tesseract OCR baseline or fallback comparison.
+- Phase 15: Authentication and user session management.
+- Phase 16: Persistent database storage and duplicate upload protection.
+- Phase 17: Final real-environment evaluation reruns and screenshots.
+- Phase 18: Dissertation/report writing and final presentation preparation.

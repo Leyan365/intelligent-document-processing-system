@@ -15,34 +15,36 @@ for the main pipeline stages:
   Recall@K, MRR@K, and NDCG@K.
 - `evaluation/latency_eval.py` for CPU latency benchmarking with per-stage
   timings and aggregate runtime statistics.
+- `evaluation/layout_feature_eval.py` for comparing text-only classification
+  against text plus CPU-friendly layout-proxy features.
 - Extraction smoke tests through the document-type-aware extractor examples.
 - Validation boundary smoke tests through `validation.py` examples covering
   clean, noisy, low-confidence, and invalid-field cases.
 
 ## Lecturer Feedback Addressed
 
-The validation boundary and confidence matrix have been added. The current
-system now exposes:
+The project has addressed the main lecturer feedback items that apply to the
+core IDP and evaluation pipeline:
 
-- OCR/text quality warnings;
-- classification confidence and confidence source;
-- field-level validation;
-- total warning counts;
-- critical warning counts;
-- validation score;
-- overall pipeline status.
+- Validation boundary and confidence matrix were added to reduce cascade error
+  propagation.
+- Semantic search is now evaluated mathematically with Precision@K, Recall@K,
+  MRR@K, and NDCG@K.
+- CPU feasibility is addressed through a stage-level latency benchmark
+  framework.
+- The text-only classifier limitation is addressed through a lightweight
+  layout-aware comparison experiment.
 
-This directly addresses the need to reduce cascade error propagation by making
-pipeline reliability visible to the reviewer.
+## Final Evaluation Rerun Tasks
 
-## Lecturer Feedback Still Planned
-
-- Repeat semantic search evaluation using the production SBERT + FAISS
-  environment.
-- Repeat CPU latency benchmarks with real PDFs/images in a full production
-  dependency environment.
-- Repeat layout-aware comparison on a more diverse same-domain document split.
-- Optional Tesseract OCR baseline or fallback comparison.
+- Rerun semantic search evaluation in the production SBERT + FAISS environment.
+- Rerun the latency benchmark with real invoice, receipt, and purchase order
+  files in the full dependency environment.
+- Repeat layout-aware comparison on a more diverse same-domain document split if
+  additional real samples are available.
+- Capture final metrics and screenshots for the dissertation and final
+  presentation.
+- Optional: run a Tesseract OCR baseline or fallback comparison.
 
 ## Phase 12: Semantic Search Evaluation
 
@@ -62,11 +64,9 @@ Implemented work:
 - Reported aggregate metrics and weak-performing queries for dissertation
   analysis.
 
-This will turn the existing semantic search feature into a measurable retrieval
-component rather than a UI-only capability.
-
-Future work: repeat the evaluation using the production SBERT + FAISS
-environment.
+This turns semantic search into a measurable retrieval component rather than a
+UI-only capability. Future work is to rerun it using the production SBERT +
+FAISS environment.
 
 ## Phase 13: CPU Latency Benchmark
 
@@ -130,4 +130,5 @@ sample of scanned PDFs/images. The comparison should focus on:
 
 This is optional because the current pipeline is already implemented with
 PaddleOCR and because the core remaining dissertation feedback is centered on
-retrieval metrics, latency, and layout-aware comparison.
+retrieval metrics, latency, layout-aware comparison, and final real-environment
+reruns.

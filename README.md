@@ -6,11 +6,13 @@ classifies document type, extracts key fields, validates pipeline reliability,
 indexes processed documents for semantic search, and displays results through a
 Streamlit interface.
 
-The current implementation is complete through Phase 11B, including invoice,
-receipt, and purchase order classification/extraction with advisory validation
-and a confidence matrix.
+The core IDP and evaluation pipeline is complete through Phase 14. The remaining
+implementation work focuses on application-level persistence, authentication,
+and duplicate protection.
 
 ## Current Features
+
+Completed pipeline and evaluation features:
 
 - Digital PDF text extraction with PyMuPDF.
 - OCR fallback for scanned PDFs and images with PaddleOCR.
@@ -25,10 +27,22 @@ and a confidence matrix.
   extracted fields.
 - Validation confidence matrix and warning summary in the Streamlit UI.
 - Semantic search with sentence-transformers embeddings and FAISS.
+- Semantic search IR evaluation with Precision@K, Recall@K, MRR@K, and NDCG@K.
+- CPU latency benchmark framework for stage-level runtime measurement.
+- Layout-aware classification comparison using lightweight text-structure
+  features.
 - Local Streamlit application for upload, processing, result review, search,
   and processing history.
 
+Remaining must-have application features:
+
+- Authentication/login and user session management.
+- Persistent database storage for processed document records.
+- Duplicate upload protection using file hashing.
+
 ## Pipeline Summary
+
+Implemented prototype pipeline:
 
 ```text
 Upload document
@@ -40,9 +54,32 @@ Upload document
 -> Streamlit display
 ```
 
+Planned persistence-aware pipeline:
+
+```text
+Authenticated user
+-> upload
+-> SHA-256 file hash check
+-> duplicate detection
+-> process new document or reuse existing record
+-> database save
+-> search indexing/display
+```
+
 The top-level orchestrator is `src/idp_system/system.py`. It coordinates the
 loader, classifier, extractor, validation layer, semantic search service, and UI
 result shape.
+
+## Current Storage Status
+
+Processed documents are currently stored in memory/session state for prototype
+review. Persistent storage is planned next.
+
+The recommended database approach is SQLite first for local dissertation/demo
+reliability and quick duplicate-protection integration. MySQL can be used if the
+existing proposal or supervisor requirements strictly require it. The schema
+should stay database-agnostic where possible so it can be moved from SQLite to
+MySQL later with minimal changes.
 
 ## Project Structure
 
@@ -63,6 +100,9 @@ training/
 evaluation/
   classification_eval.py
   extraction_eval.py
+  search_eval.py
+  latency_eval.py
+  layout_feature_eval.py
   utils.py
 ```
 
@@ -119,6 +159,9 @@ Run lightweight evaluation scripts when the expected local datasets are present:
 ```powershell
 $env:PYTHONPATH='src'; python evaluation/classification_eval.py
 $env:PYTHONPATH='src'; python evaluation/extraction_eval.py
+$env:PYTHONPATH='src'; python evaluation/search_eval.py
+$env:PYTHONPATH='src'; python evaluation/latency_eval.py
+$env:PYTHONPATH='src'; python evaluation/layout_feature_eval.py
 ```
 
 ## Dataset Building
@@ -187,6 +230,12 @@ temporary uploads outside version control.
 
 ## Current Limitations
 
+- Authentication/login is not implemented yet and is the next required
+  application-level feature.
+- Persistent database storage is not implemented yet; processed records are
+  currently in-memory/session-based for prototype review.
+- Duplicate upload protection is not implemented yet and should be handled with
+  SHA-256 file hashing.
 - Validation is advisory only; it flags low-confidence or suspicious outputs but
   does not block downstream processing.
 - The trained classifier reports perfect validation accuracy on the current
@@ -194,18 +243,26 @@ temporary uploads outside version control.
   classes come from different source domains.
 - Purchase order training data is much smaller than receipt training data.
 - RVL-CDIP invoice samples depend on OCR quality and can be noisy.
-- Semantic search is implemented but still needs formal relevance metrics such
-  as MRR and NDCG.
-- Latency has not yet been benchmarked formally for CPU-only deployment.
-- Layout-aware features have not yet been compared against the current
-  text-only classifier.
+- Semantic search, latency, and layout-aware evaluation frameworks are
+  implemented, but final reruns should be performed in the full production
+  dependency environment with real representative files.
+
+## Changes From Original Proposal
+
+- The Flask backend was deferred in favor of a Streamlit-first implementation.
+- Authentication and database integration were initially deferred during ML
+  pipeline development, but they are now required before final submission.
+- MySQL was proposed originally. SQLite may be used for local prototype
+  persistence if acceptable, while keeping the schema portable to MySQL.
+- BGE-M3 was reduced to Sentence-BERT/MiniLM-style local embeddings for
+  feasibility.
+- Additional academic evaluation phases were added beyond the proposal:
+  validation matrix, MRR/NDCG evaluation, CPU latency benchmark, and
+  layout-aware classification comparison.
 
 ## Next Planned Phases
 
-- Phase 12: semantic search evaluation with Precision@K, Recall@K, MRR@K, and
-  NDCG@K.
-- Phase 13: CPU latency benchmark across extraction, OCR, classification,
-  field extraction, validation, embedding, and search indexing.
-- Phase 14: layout-aware feature comparison against the current text-only
-  classifier.
-- Optional: Tesseract OCR baseline or fallback comparison.
+- Phase 15: authentication and user session management.
+- Phase 16: persistent database storage and duplicate upload protection.
+- Phase 17: final real-environment evaluation reruns and screenshots.
+- Phase 18: dissertation/report writing and final presentation preparation.

@@ -105,3 +105,11 @@ $env:PYTHONPATH='src'; python training/build_custom_text_dataset.py
 The `data/` directory is ignored by git. This keeps large raw datasets, OCR
 caches, generated text datasets, and local experimental files out of version
 control.
+
+## Database Storage Note
+
+Persistent database storage is planned for processed document records, user
+ownership, extracted outputs, validation results, and duplicate prevention. It
+will not store or commit the raw training datasets. Training data remains under
+`data/` as local-only project material, while the database should track uploaded
+and processed document records through metadata such as SHA-256 file hashes.
