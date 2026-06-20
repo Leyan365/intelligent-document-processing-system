@@ -172,11 +172,33 @@ def _extract_pdf_text_with_pymupdf(path: Path) -> tuple[str, int]:
             "PyMuPDF is required for PDF text extraction. Install package: pymupdf"
         ) from exc
 
+    try:
+        pdf = fitz.open(path)
+    except Exception as exc:
+        raise DocumentLoadError(
+            f"Could not open PDF with PyMuPDF: {path}. Original error: {exc}"
+        ) from exc
+
     text_parts: list[str] = []
-    with fitz.open(path) as pdf:
-        for page in pdf:
-            text_parts.append(page.get_text("text"))
-        return "\n".join(text_parts), len(pdf)
+    try:
+        with pdf:
+            page_count = len(pdf)
+            for page_number, page in enumerate(pdf, start=1):
+                try:
+                    text_parts.append(page.get_text("text"))
+                except Exception as exc:
+                    raise DocumentLoadError(
+                        f"Could not extract text from PDF page {page_number} with PyMuPDF: "
+                        f"{path}. Original error: {exc}"
+                    ) from exc
+    except DocumentLoadError:
+        raise
+    except Exception as exc:
+        raise DocumentLoadError(
+            f"Could not read PDF with PyMuPDF: {path}. Original error: {exc}"
+        ) from exc
+
+    return "\n".join(text_parts), page_count
 
 
 def _extract_pdf_text_with_ocr(path: Path, ocr_service: OCRService) -> str:

@@ -1,10 +1,8 @@
 # Project Status
 
-## Current Status After Phase 14
+## Current Status After Phase 15
 
-The core IDP and evaluation pipeline is complete. The remaining implementation
-work focuses on application-level persistence, authentication, and duplicate
-protection.
+The core IDP and evaluation pipeline is complete. Phase 15 has added local Streamlit authentication and user session management. The remaining implementation work focuses on persistent document storage and duplicate protection.
 
 The current system can process invoices, receipts, and purchase orders through
 the local pipeline:
@@ -46,6 +44,8 @@ latency benchmarking, and layout-aware classification comparison.
   MRR@K, and NDCG@K.
 - Phase 13: Added CPU latency benchmark framework.
 - Phase 14: Added layout-aware classification comparison.
+- Phase 15: Added local SQLite-backed Streamlit authentication and user session
+  management.
 
 ## Latest Working Behavior
 
@@ -81,7 +81,7 @@ latency benchmarking, and layout-aware classification comparison.
 
 ## Known Limitations
 
-- Authentication is not implemented yet and is now a required next phase.
+- Authentication is implemented as a local SQLite-backed academic prototype. It does not include MFA or RBAC.
 - Persistent database storage is not implemented yet and is now a required next
   phase.
 - Duplicate upload protection is not implemented yet and should be handled with
@@ -116,7 +116,6 @@ latency benchmarking, and layout-aware classification comparison.
 
 ## Next Phases
 
-- Phase 15: Authentication and user session management.
 - Phase 16: Persistent database storage and duplicate upload protection.
 - Phase 17: Final real-environment evaluation reruns and screenshots.
 - Phase 18: Dissertation/report writing and final presentation preparation.

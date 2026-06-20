@@ -14,6 +14,7 @@ SRC_DIR = Path(__file__).resolve().parents[2]
 if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
+from idp_system.auth import authenticate_user, initialize_auth_db, register_user
 from idp_system.system import IDPSystem
 
 
@@ -27,10 +28,16 @@ def main() -> None:
         page_title="Intelligent Document Processing System",
         layout="wide",
     )
+    initialize_auth_db()
     _ensure_session_state()
 
     st.title("Intelligent Document Processing System")
 
+    if not st.session_state.authenticated:
+        render_auth_page()
+        return
+
+    _render_authenticated_sidebar()
     page = st.sidebar.radio(
         "Navigation",
         ["Upload & Process", "Search", "Document History"],
@@ -49,6 +56,86 @@ def _ensure_session_state() -> None:
         st.session_state.system = IDPSystem()
     if "processed_history" not in st.session_state:
         st.session_state.processed_history = []
+    if "authenticated" not in st.session_state:
+        st.session_state.authenticated = False
+    if "user_id" not in st.session_state:
+        st.session_state.user_id = None
+    if "username" not in st.session_state:
+        st.session_state.username = None
+
+
+def render_auth_page() -> None:
+    st.info(
+        "This is a local academic prototype authentication system. "
+        "It does not include enterprise-grade controls such as MFA or RBAC yet."
+    )
+    login_tab, register_tab = st.tabs(["Login", "Register"])
+
+    with login_tab:
+        render_login_form()
+
+    with register_tab:
+        render_register_form()
+
+
+def render_login_form() -> None:
+    st.subheader("Login")
+    with st.form("login_form"):
+        username_or_email = st.text_input("Username or email")
+        password = st.text_input("Password", type="password")
+        submitted = st.form_submit_button("Login", type="primary")
+
+    if not submitted:
+        return
+
+    result = authenticate_user(username_or_email, password)
+    if not result.success or result.user is None:
+        st.error(result.error or "Login failed.")
+        return
+
+    st.session_state.authenticated = True
+    st.session_state.user_id = result.user["user_id"]
+    st.session_state.username = result.user["username"]
+    st.success("Login successful.")
+    st.rerun()
+
+
+def render_register_form() -> None:
+    st.subheader("Register")
+    with st.form("register_form"):
+        username = st.text_input("Username")
+        email = st.text_input("Email (optional)")
+        password = st.text_input("Password", type="password")
+        confirm_password = st.text_input("Confirm password", type="password")
+        submitted = st.form_submit_button("Register", type="primary")
+
+    if not submitted:
+        return
+
+    if password != confirm_password:
+        st.error("Passwords do not match.")
+        return
+
+    result = register_user(username, email, password)
+    if not result.success:
+        st.error(result.error or "Registration failed.")
+        return
+
+    st.success("Registration successful. Please use the Login tab to sign in.")
+
+
+def _render_authenticated_sidebar() -> None:
+    st.sidebar.markdown(f"Signed in as **{st.session_state.username}**")
+    st.sidebar.caption("Local academic prototype auth. No MFA/RBAC yet.")
+    if st.sidebar.button("Logout"):
+        _logout()
+
+
+def _logout() -> None:
+    st.session_state.authenticated = False
+    st.session_state.user_id = None
+    st.session_state.username = None
+    st.rerun()
 
 
 def render_upload_page() -> None:
@@ -65,7 +152,7 @@ def render_upload_page() -> None:
 
     if uploaded_file is None:
         with st.container(border=True):
-            st.markdown("**📄 No document uploaded yet**")
+            st.markdown("**No document uploaded yet**")
             st.write("Upload a PDF or image to start processing.")
             st.caption("Supported formats: PDF, PNG, JPG, and JPEG.")
         return
@@ -129,7 +216,6 @@ def render_result(result: dict[str, Any]) -> None:
 
         st.markdown("**Extracted Fields**")
         field_cols = st.columns(2)
-        fields = result.get("fields") or {}
         FIELD_LABELS = {
             "invoice_number": "Invoice / Order No.",
             "date": "Date",
@@ -256,7 +342,7 @@ def render_history_page() -> None:
     history = st.session_state.processed_history
 
     if not history:
-        st.info("📂 No processed documents yet\n\nProcess your first document to see results here.")
+        st.info("No processed documents yet\n\nProcess your first document to see results here.")
         return
 
     rows = []
@@ -300,7 +386,7 @@ def render_history_page() -> None:
 
 def _save_uploaded_file(uploaded_file: Any) -> Path:
     TEMP_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
-    suffix = Path(uploaded_file.name).suffix
+    suffix = Path(uploaded_file.name).suffix.lower()
     safe_name = f"{uuid4().hex}{suffix}"
     temp_path = TEMP_UPLOAD_DIR / safe_name
     temp_path.write_bytes(uploaded_file.getbuffer())
@@ -317,12 +403,12 @@ def _render_stages(container: Any, active_index: int) -> None:
     lines = []
     for index, stage_name in enumerate(stage_names):
         if index < active_index:
-            marker = "✔"
+            marker = "done"
         elif index == active_index:
-            marker = "⏳"
+            marker = "active"
         else:
-            marker = "○"
-        lines.append(f"{marker} {stage_name}")
+            marker = "pending"
+        lines.append(f"[{marker}] {stage_name}")
     container.code("\n".join(lines), language="text")
 
 
@@ -401,10 +487,10 @@ def _classification_label_text(
 ) -> str:
     label = _document_type_label(document_type)
     if confidence_source == "heuristic":
-        return f"{label} — heuristic match"
+        return f"{label} - heuristic match"
     if confidence is not None:
         try:
-            return f"{label} — {float(confidence) * 100:.1f}% confident"
+            return f"{label} - {float(confidence) * 100:.1f}% confident"
         except (TypeError, ValueError):
             return label
     return label

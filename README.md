@@ -136,6 +136,11 @@ spaCy.
 $env:PYTHONPATH='src'; streamlit run src/idp_system/ui/streamlit_app.py
 ```
 
+```cmd
+set PYTHONPATH=src
+python -m streamlit run src\idp_system\ui\streamlit_app.py
+```
+
 The UI supports document upload, processing stage display, extracted field
 review, validation results, semantic search over processed documents, and
 history viewing.
