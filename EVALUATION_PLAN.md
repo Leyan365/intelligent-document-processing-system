@@ -41,7 +41,7 @@ pipeline reliability visible to the reviewer.
   environment.
 - Repeat CPU latency benchmarks with real PDFs/images in a full production
   dependency environment.
-- Layout-aware feature comparison against the current text-only classifier.
+- Repeat layout-aware comparison on a more diverse same-domain document split.
 - Optional Tesseract OCR baseline or fallback comparison.
 
 ## Phase 12: Semantic Search Evaluation
@@ -95,18 +95,28 @@ sentence-transformers, and FAISS are installed.
 
 ## Phase 14: Layout-Aware Feature Comparison
 
-Planned comparison:
+Comparison implemented:
 
 ```text
-text-only classifier
-vs
-text + layout/spatial features
+evaluation/layout_feature_eval.py
 ```
 
-The current classifier uses only text features. Phase 14 should test whether
-layout-aware features improve classification reliability, especially for noisy
-OCR documents where field positions and document structure may carry useful
-signals.
+Implemented comparison:
+
+```text
+text-only TF-IDF + Logistic Regression
+vs
+text TF-IDF + lightweight layout-proxy features + Logistic Regression
+```
+
+The current production classifier remains unchanged. The Phase 14 evaluation
+adds a CPU-friendly research comparison using numeric text-structure features
+such as line counts, top/bottom-region keyword counts, amount/date patterns,
+payment keywords, and table-density proxies. On the current validation split,
+the layout-aware model matched the text-only baseline, suggesting the current
+split is already highly separable by text/domain cues. Future work should repeat
+the experiment on more diverse same-domain documents where spatial structure may
+provide stronger additional signal.
 
 ## Optional Tesseract Baseline
 
