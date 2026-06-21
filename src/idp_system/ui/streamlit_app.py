@@ -15,11 +15,18 @@ if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
 from idp_system.auth import authenticate_user, initialize_auth_db, register_user
+from idp_system.database.document_repository import (
+    compute_file_hash,
+    get_document_by_user_and_hash,
+    initialize_document_tables,
+    list_documents_for_user,
+    save_processed_document,
+)
 from idp_system.system import IDPSystem
 
 
 SUPPORTED_UPLOAD_TYPES = ["pdf", "png", "jpg", "jpeg"]
-TEMP_UPLOAD_DIR = Path("temp_uploads")
+UPLOAD_STORAGE_ROOT = Path("data/app/uploads")
 PREVIEW_CHARS = 1000
 
 
@@ -29,6 +36,7 @@ def main() -> None:
         layout="wide",
     )
     initialize_auth_db()
+    initialize_document_tables()
     _ensure_session_state()
 
     st.title("Intelligent Document Processing System")
@@ -37,6 +45,7 @@ def main() -> None:
         render_auth_page()
         return
 
+    _ensure_active_user_state()
     _render_authenticated_sidebar()
     page = st.sidebar.radio(
         "Navigation",
@@ -62,6 +71,26 @@ def _ensure_session_state() -> None:
         st.session_state.user_id = None
     if "username" not in st.session_state:
         st.session_state.username = None
+    if "active_user_id" not in st.session_state:
+        st.session_state.active_user_id = None
+    if "search_index_user_id" not in st.session_state:
+        st.session_state.search_index_user_id = None
+    if "search_index_document_count" not in st.session_state:
+        st.session_state.search_index_document_count = None
+
+
+def _ensure_active_user_state() -> None:
+    user_id = st.session_state.user_id
+    if user_id is not None and st.session_state.active_user_id != user_id:
+        _reset_document_session_state(user_id)
+
+
+def _reset_document_session_state(user_id: int | None = None) -> None:
+    st.session_state.system = IDPSystem()
+    st.session_state.processed_history = []
+    st.session_state.active_user_id = user_id
+    st.session_state.search_index_user_id = None
+    st.session_state.search_index_document_count = None
 
 
 def render_auth_page() -> None:
@@ -93,9 +122,11 @@ def render_login_form() -> None:
         st.error(result.error or "Login failed.")
         return
 
+    user_id = int(result.user["user_id"])
     st.session_state.authenticated = True
-    st.session_state.user_id = result.user["user_id"]
+    st.session_state.user_id = user_id
     st.session_state.username = result.user["username"]
+    _reset_document_session_state(user_id)
     st.success("Login successful.")
     st.rerun()
 
@@ -135,6 +166,7 @@ def _logout() -> None:
     st.session_state.authenticated = False
     st.session_state.user_id = None
     st.session_state.username = None
+    _reset_document_session_state(None)
     st.rerun()
 
 
@@ -165,7 +197,19 @@ def render_upload_page() -> None:
         col_size.metric("Size", _format_bytes(uploaded_file.size))
 
     if st.button("Process Document", type="primary", width="stretch"):
-        temp_path = _save_uploaded_file(uploaded_file)
+        user_id = _current_user_id()
+        file_bytes = uploaded_file.getvalue()
+        file_hash = compute_file_hash(file_bytes)
+        duplicate = get_document_by_user_and_hash(user_id, file_hash)
+
+        if duplicate is not None:
+            result = _result_from_document_record(duplicate)
+            _remember_result(result)
+            st.info("Duplicate upload detected. Existing processed result was loaded.")
+            render_result(result)
+            return
+
+        stored_path = _save_uploaded_file_bytes(uploaded_file, file_bytes, user_id)
         progress = st.progress(0)
         stages = st.empty()
 
@@ -179,17 +223,30 @@ def render_upload_page() -> None:
             _render_stages(stages, active_index=2)
             progress.progress(70, text="Information Extraction")
 
-            result = st.session_state.system.process_document(temp_path)
+            result = st.session_state.system.process_document(stored_path)
 
             _render_stages(stages, active_index=3)
             progress.progress(90, text="Search Indexing")
 
-            st.session_state.processed_history.append(result)
+            saved = save_processed_document(
+                user_id=user_id,
+                uploaded_file_metadata={
+                    "original_filename": uploaded_file.name,
+                    "file_size": len(file_bytes),
+                    "content_type": uploaded_file.type,
+                },
+                file_hash=file_hash,
+                stored_path=stored_path,
+                result=result,
+            )
+            result = _result_from_document_record(saved)
+            _remember_result(result)
+            _mark_search_index_stale()
             _render_stages(stages, active_index=4)
             progress.progress(100, text="Complete")
 
-            st.toast("Document processed successfully")
-            st.success("Document processed successfully.")
+            st.toast("Document processed and saved successfully")
+            st.success("Document processed and saved successfully.")
             render_result(result)
         except Exception as exc:
             st.error("Document processing failed.")
@@ -274,6 +331,7 @@ def render_search_page() -> None:
         "Semantic search retrieves relevant processed documents and snippets. "
         "It does not generate answers."
     )
+    _ensure_search_index_for_current_user()
 
     with st.container(border=True):
         query = st.text_input(
@@ -339,20 +397,23 @@ def render_search_page() -> None:
 
 def render_history_page() -> None:
     st.header("Document History")
-    history = st.session_state.processed_history
+    records = list_documents_for_user(_current_user_id())
 
-    if not history:
+    if not records:
         st.info("No processed documents yet\n\nProcess your first document to see results here.")
         return
 
     rows = []
-    for document in history:
-        fields = document.get("fields") or {}
+    for record in records:
+        result = _result_from_document_record(record)
+        fields = result.get("fields") or {}
+        validation = result.get("validation") if isinstance(result.get("validation"), dict) else {}
         rows.append(
             {
-                "id": document.get("id"),
-                "status": "Processed",
-                "type": document.get("type"),
+                "filename": record.get("original_filename"),
+                "processed_at": record.get("created_at"),
+                "status": _pipeline_status_label(str(validation.get("pipeline_status", "processed"))),
+                "type": result.get("type"),
                 "supplier": fields.get("supplier"),
                 "date": fields.get("date"),
                 "amount": fields.get("amount"),
@@ -362,35 +423,134 @@ def render_history_page() -> None:
     st.dataframe(rows, width="stretch", hide_index=True)
 
     st.markdown("**Recent Documents**")
-    for document in reversed(history[-5:]):
-        fields = document.get("fields") or {}
+    for record in records[:5]:
+        result = _result_from_document_record(record)
+        fields = result.get("fields") or {}
+        validation = result.get("validation") if isinstance(result.get("validation"), dict) else {}
         with st.container(border=True):
             top_left, top_right = st.columns([3, 1])
             with top_left:
-                st.markdown(f"**{document.get('id')}**")
+                st.markdown(f"**{record.get('original_filename')}**")
                 _badge(
                     _classification_label_text(
-                        document.get("type"),
-                        document.get("confidence"),
-                        document.get("confidence_source"),
+                        result.get("type"),
+                        result.get("confidence"),
+                        result.get("confidence_source"),
                     )
                 )
+                st.caption(f"Processed: {_display_value(record.get('created_at'))}")
             with top_right:
-                st.markdown("`Processed`")
+                _status_badge(
+                    _pipeline_status_label(str(validation.get("pipeline_status", "processed"))),
+                    str(validation.get("pipeline_status", "processed")),
+                )
             cols = st.columns(3)
             cols[0].caption(f"Supplier: {_display_value(fields.get('supplier'))}")
             cols[1].caption(f"Date: {_display_value(fields.get('date'))}")
             cols[2].caption(f"Amount: {_display_value(fields.get('amount'))}")
-    st.caption("Document detail buttons will be added in a later UI phase.")
+    st.caption("History is loaded from the local database for the signed-in user.")
 
 
-def _save_uploaded_file(uploaded_file: Any) -> Path:
-    TEMP_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+def _save_uploaded_file_bytes(uploaded_file: Any, file_bytes: bytes, user_id: int) -> Path:
     suffix = Path(uploaded_file.name).suffix.lower()
+    upload_dir = UPLOAD_STORAGE_ROOT / str(user_id)
+    upload_dir.mkdir(parents=True, exist_ok=True)
     safe_name = f"{uuid4().hex}{suffix}"
-    temp_path = TEMP_UPLOAD_DIR / safe_name
-    temp_path.write_bytes(uploaded_file.getbuffer())
-    return temp_path
+    stored_path = upload_dir / safe_name
+    stored_path.write_bytes(file_bytes)
+    return stored_path
+
+
+def _current_user_id() -> int:
+    user_id = st.session_state.user_id
+    if user_id is None:
+        raise RuntimeError("A logged-in user is required.")
+    return int(user_id)
+
+
+def _result_from_document_record(record: dict[str, Any]) -> dict[str, Any]:
+    result = dict(record.get("result") or {})
+    if not result.get("text") and record.get("raw_text"):
+        result["text"] = record.get("raw_text")
+    if not result.get("type") and record.get("document_type"):
+        result["type"] = record.get("document_type")
+    result.setdefault("id", str(record.get("document_id")))
+    result["persistent_document_id"] = record.get("document_id")
+    result["source_filename"] = record.get("original_filename")
+    return result
+
+
+def _remember_result(result: dict[str, Any]) -> None:
+    document_id = result.get("persistent_document_id") or result.get("id")
+    history = st.session_state.processed_history
+    if document_id is not None:
+        history[:] = [
+            item for item in history
+            if (item.get("persistent_document_id") or item.get("id")) != document_id
+        ]
+    history.append(result)
+
+
+def _mark_search_index_stale() -> None:
+    st.session_state.search_index_user_id = None
+    st.session_state.search_index_document_count = None
+
+
+def _ensure_search_index_for_current_user() -> None:
+    user_id = _current_user_id()
+    records = list_documents_for_user(user_id)
+    if (
+        st.session_state.search_index_user_id == user_id
+        and st.session_state.search_index_document_count == len(records)
+    ):
+        return
+
+    st.session_state.system = IDPSystem()
+    documents = []
+    for record in reversed(records):
+        result = _result_from_document_record(record)
+        text = str(result.get("text") or record.get("raw_text") or "")
+        if not text.strip():
+            continue
+        fields = result.get("fields") if isinstance(result.get("fields"), dict) else {}
+        document_type = str(result.get("type") or record.get("document_type") or "unknown")
+        documents.append(
+            {
+                "id": str(record.get("document_id")),
+                "text": _build_search_text(document_type, fields, text),
+                "type": document_type,
+                "confidence": result.get("confidence"),
+                "confidence_source": result.get("confidence_source"),
+                "fields": fields,
+                "source": record.get("stored_path"),
+            }
+        )
+
+    if documents:
+        st.session_state.system.search_service.add_documents(documents)
+    st.session_state.search_index_user_id = user_id
+    st.session_state.search_index_document_count = len(records)
+
+
+def _build_search_text(
+    document_type: str,
+    fields: dict[str, Any],
+    document_text: str,
+    content_limit: int = 2500,
+) -> str:
+    clean_content = " ".join(document_text.split())[:content_limit]
+    return (
+        f"{document_type} document.\n"
+        f"Supplier: {_field_value(fields.get('supplier'))}\n"
+        f"Invoice / Order No.: {_field_value(fields.get('invoice_number'))}\n"
+        f"Date: {_field_value(fields.get('date'))}\n"
+        f"Amount: {_field_value(fields.get('amount'))}\n\n"
+        f"Relevant Content:\n{clean_content}"
+    )
+
+
+def _field_value(value: Any) -> str:
+    return "" if value in (None, "") else str(value)
 
 
 def _render_stages(container: Any, active_index: int) -> None:
@@ -419,7 +579,7 @@ def _snippet(text: str, length: int = 500) -> str:
 
 def _editable_field_card(result: dict[str, Any], field_name: str, label: str) -> None:
     fields = result.setdefault("fields", {})
-    document_id = result.get("id", "document")
+    document_id = result.get("persistent_document_id") or result.get("id", "document")
     with st.container(border=True):
         st.caption(label)
         updated_value = st.text_input(

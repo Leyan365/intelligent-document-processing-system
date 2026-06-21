@@ -1,8 +1,8 @@
 # Project Status
 
-## Current Status After Phase 15
+## Current Status After Phase 16
 
-The core IDP and evaluation pipeline is complete. Phase 15 has added local Streamlit authentication and user session management. The remaining implementation work focuses on persistent document storage and duplicate protection.
+The core IDP and evaluation pipeline is complete. Phase 16 has added persistent SQLite document storage and per-user duplicate upload protection. The remaining work focuses on final real-environment evaluation reruns, screenshots, dissertation/report writing, and presentation preparation.
 
 The current system can process invoices, receipts, and purchase orders through
 the local pipeline:
@@ -46,6 +46,8 @@ latency benchmarking, and layout-aware classification comparison.
 - Phase 14: Added layout-aware classification comparison.
 - Phase 15: Added local SQLite-backed Streamlit authentication and user session
   management.
+- Phase 16: Added persistent SQLite document storage and per-user duplicate
+  upload protection.
 
 ## Latest Working Behavior
 
@@ -60,7 +62,7 @@ latency benchmarking, and layout-aware classification comparison.
 - Semantic search indexing runs after each processed document and supports
   in-memory query over processed documents.
 - Streamlit displays uploaded document results, extracted fields, validation
-  details, search, and history.
+  details, search, and persisted per-user history.
 - `evaluation/search_eval.py` evaluates semantic search with IR metrics.
 - `evaluation/latency_eval.py` benchmarks stage-level CPU latency.
 - `evaluation/layout_feature_eval.py` compares text-only classification with
@@ -82,11 +84,9 @@ latency benchmarking, and layout-aware classification comparison.
 ## Known Limitations
 
 - Authentication is implemented as a local SQLite-backed academic prototype. It does not include MFA or RBAC.
-- Persistent database storage is not implemented yet and is now a required next
-  phase.
-- Duplicate upload protection is not implemented yet and should be handled with
-  file hashing.
-- Current storage is in-memory/session-based for prototype review.
+- Processed document records persist in SQLite with per-user duplicate protection.
+- Semantic search embeddings are still in-memory and are rebuilt from persisted
+  documents for the signed-in user when needed.
 - Validation is advisory only and does not block classification, extraction, or
   indexing.
 - The classifier's reported validation accuracy is high, but it may be inflated
@@ -116,6 +116,5 @@ latency benchmarking, and layout-aware classification comparison.
 
 ## Next Phases
 
-- Phase 16: Persistent database storage and duplicate upload protection.
 - Phase 17: Final real-environment evaluation reruns and screenshots.
 - Phase 18: Dissertation/report writing and final presentation preparation.

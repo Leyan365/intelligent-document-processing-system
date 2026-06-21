@@ -6,9 +6,9 @@ classifies document type, extracts key fields, validates pipeline reliability,
 indexes processed documents for semantic search, and displays results through a
 Streamlit interface.
 
-The core IDP and evaluation pipeline is complete through Phase 14. The remaining
-implementation work focuses on application-level persistence, authentication,
-and duplicate protection.
+The core IDP and evaluation pipeline is complete through Phase 16. The remaining
+work focuses on final real-environment evaluation reruns, screenshots,
+dissertation/report writing, and presentation preparation.
 
 ## Current Features
 
@@ -34,11 +34,11 @@ Completed pipeline and evaluation features:
 - Local Streamlit application for upload, processing, result review, search,
   and processing history.
 
-Remaining must-have application features:
+Completed application features:
 
 - Authentication/login and user session management.
-- Persistent database storage for processed document records.
-- Duplicate upload protection using file hashing.
+- Persistent SQLite storage for processed document records.
+- Per-user duplicate upload protection using SHA-256 file hashing.
 
 ## Pipeline Summary
 
@@ -54,7 +54,7 @@ Upload document
 -> Streamlit display
 ```
 
-Planned persistence-aware pipeline:
+Persistence-aware application pipeline:
 
 ```text
 Authenticated user
@@ -72,8 +72,8 @@ result shape.
 
 ## Current Storage Status
 
-Processed documents are currently stored in memory/session state for prototype
-review. Persistent storage is planned next.
+Processed document records are stored in the local SQLite app database at
+`data/app/idp_app.db`. Uploaded files are saved under `data/app/uploads/<user_id>/`, and duplicate uploads are detected per user with SHA-256 file hashes.
 
 The recommended database approach is SQLite first for local dissertation/demo
 reliability and quick duplicate-protection integration. MySQL can be used if the
@@ -88,7 +88,7 @@ src/idp_system/
   core/                 configuration, exceptions, logging, document models
   pipeline/             extraction, OCR, classification, validation, search
   ui/                   Streamlit application
-  database/             placeholder database adapter
+  database/             SQLite auth and document persistence repositories
   system.py             integrated IDPSystem orchestrator
 
 training/
@@ -235,12 +235,9 @@ temporary uploads outside version control.
 
 ## Current Limitations
 
-- Authentication/login is not implemented yet and is the next required
-  application-level feature.
-- Persistent database storage is not implemented yet; processed records are
-  currently in-memory/session-based for prototype review.
-- Duplicate upload protection is not implemented yet and should be handled with
-  SHA-256 file hashing.
+- Authentication is implemented as a local SQLite-backed academic prototype.
+- Processed records persist in SQLite, but semantic search embeddings are rebuilt
+  in memory from persisted documents after app restart.
 - Validation is advisory only; it flags low-confidence or suspicious outputs but
   does not block downstream processing.
 - The trained classifier reports perfect validation accuracy on the current
@@ -267,7 +264,5 @@ temporary uploads outside version control.
 
 ## Next Planned Phases
 
-- Phase 15: authentication and user session management.
-- Phase 16: persistent database storage and duplicate upload protection.
 - Phase 17: final real-environment evaluation reruns and screenshots.
 - Phase 18: dissertation/report writing and final presentation preparation.
