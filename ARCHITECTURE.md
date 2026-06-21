@@ -19,7 +19,7 @@ Document upload
 -> Streamlit display
 ```
 
-Planned persistence pipeline:
+Implemented persistence-aware pipeline:
 
 ```text
 Authenticated user
@@ -31,10 +31,10 @@ Authenticated user
 -> search indexing/display
 ```
 
-The integrated pipeline is coordinated by `IDPSystem` in
-`src/idp_system/system.py`. Authentication, persistent storage, and duplicate
-upload protection are planned application-level layers around the current core
-pipeline.
+The integrated core pipeline is coordinated by `IDPSystem` in
+`src/idp_system/system.py`. Authentication, persistent SQLite storage, and
+per-user duplicate upload protection are implemented as application-level
+layers around the current core pipeline.
 
 ## Major Components
 
@@ -68,31 +68,41 @@ pipeline.
 
 ## Current Data Flow
 
-1. A user uploads a document through Streamlit.
-2. The file is saved temporarily and passed to `IDPSystem.process_document`.
-3. `DocumentLoaderRouter` selects a local loader based on file extension.
-4. PDFs are extracted with PyMuPDF first; low-text PDFs and images use
+1. An authenticated user uploads a document through Streamlit.
+2. The app reads the uploaded bytes and computes a SHA-256 file hash.
+3. The app checks SQLite for an existing document with the same `user_id` and
+   `file_hash`.
+4. If a duplicate exists, the persisted result snapshot is loaded instead of
+   reprocessing.
+5. If it is new, the file is saved under `data/app/uploads/<user_id>/` and
+   passed to `IDPSystem.process_document`.
+6. `DocumentLoaderRouter` selects a local loader based on file extension.
+7. PDFs are extracted with PyMuPDF first; low-text PDFs and images use
    PaddleOCR.
-5. `DocumentClassifier` predicts one of `invoice`, `receipt`, or
+8. `DocumentClassifier` predicts one of `invoice`, `receipt`, or
    `purchase_order`.
-6. `InformationExtractor` applies document-type-aware extraction rules.
-7. `validate_pipeline` checks text quality, classification confidence, and
-   extracted field reliability.
-8. The processed document is added to the FAISS-backed semantic search service.
-9. Streamlit displays extracted fields, validation results, search, and history.
+9. `InformationExtractor` applies document-type-aware extraction rules.
+10. `validate_pipeline` checks text quality, classification confidence, and
+    extracted field reliability.
+11. The processed result, classification, fields, validation metadata, raw text,
+    and JSON snapshot are saved to SQLite.
+12. The processed document is added to the FAISS-backed in-memory semantic
+    search service.
+13. Streamlit displays extracted fields, validation results, search, and
+    per-user persisted history.
 
-Current processed-document storage is in-memory/session-based for prototype
-review.
+Processed-document records persist in SQLite. Semantic search embeddings remain
+in memory and are rebuilt from persisted documents for the signed-in user when
+needed.
 
-## Planned Authentication And Persistence Layer
+## Authentication And Persistence Layer
 
-The next implementation phase should add authentication and persistent document
-storage without changing the core IDP model behavior. A local SQLite database is
-recommended first for dissertation/demo reliability, with table names and field
-semantics kept portable to MySQL if the original proposal must be followed
-strictly.
+The application uses local Streamlit authentication and persistent SQLite
+document storage without changing the core IDP model behavior. The SQLite
+schema is kept portable so it can be migrated to MySQL later if required by the
+original proposal or supervisor requirements.
 
-Planned database tables:
+Implemented database tables:
 
 - `users`: login identity and password/session metadata.
 - `documents`: uploaded document metadata, owner, source filename, file hash,
@@ -103,21 +113,20 @@ Planned database tables:
   optional normalized field values.
 - `validation_results`: pipeline status, validation score, warning counts, and
   serialized warning details.
-- `search_index_metadata` or `embeddings_metadata`: search/index references,
-  embedding model name, vector dimension, and index/update timestamps.
+- Search embeddings are not persisted in Phase 16; they are rebuilt in memory
+  from the current user's persisted documents when needed.
 
 ## Duplicate Upload Protection
 
-Duplicate protection should be implemented before processing a newly uploaded
-file:
+Duplicate protection is implemented before processing a newly uploaded file:
 
 1. Read uploaded file bytes.
 2. Compute a SHA-256 hash.
-3. Store `file_hash` in the `documents` table with a unique constraint.
+3. Store `file_hash` in the `documents` table with a `UNIQUE(user_id, file_hash)` constraint.
 4. If a user uploads the same file again, return the existing processed record
    instead of reprocessing the document.
-5. If a duplicate belongs to another user, enforce the chosen access policy
-   through the authentication/user ownership layer.
+5. Duplicate detection is scoped per user, so another user does not see or reuse
+   the first user's document history.
 
 This protects CPU-heavy OCR/embedding work from unnecessary repetition and gives
 stable document identity for prototype demonstrations.
@@ -161,7 +170,7 @@ Current pipeline statuses are:
 - Evaluation-first academic scope: MRR/NDCG, CPU latency, and layout-aware
   comparison have been added as research evidence without rewriting production
   components.
-- Database-agnostic persistence: SQLite is preferred for fast local integration,
-  but the schema should remain portable to MySQL.
-- In-memory search: Semantic search is useful for prototype review, but search
-  metadata and document records should be persisted in the next phase.
+- Database-agnostic persistence: SQLite is used for local reliability, while
+  the schema remains portable to MySQL.
+- In-memory search: Semantic search vectors are rebuilt from persisted document
+  records for the signed-in user instead of being stored permanently.

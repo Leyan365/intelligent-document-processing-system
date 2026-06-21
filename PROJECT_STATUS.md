@@ -2,7 +2,7 @@
 
 ## Current Status After Phase 16
 
-The core IDP and evaluation pipeline is complete. Phase 16 has added persistent SQLite document storage and per-user duplicate upload protection. The remaining work focuses on final real-environment evaluation reruns, screenshots, dissertation/report writing, and presentation preparation.
+The core IDP pipeline is complete. Phase 15 added local Streamlit authentication, and Phase 16 added persistent SQLite document storage with per-user duplicate upload protection. The remaining work focuses on improvement/tuning, UI polish, final real-environment evaluation reruns, screenshots, dissertation/report writing, and presentation preparation.
 
 The current system can process invoices, receipts, and purchase orders through
 the local pipeline:
@@ -74,12 +74,14 @@ latency benchmarking, and layout-aware classification comparison.
 
 ## Recent Commits
 
-- `96b4263` Phase 11: Add validation boundary and confidence matrix.
-- `e8f34ef` Phase 11B: Improve receipt and purchase order validation
+- 96b4263 Phase 11: Add validation boundary and confidence matrix.
+- e8f34ef Phase 11B: Improve receipt and purchase order validation
   reliability.
-- `a57b6fe` Phase 12: Add semantic search evaluation metrics.
-- `7fc7e00` Phase 13: Add CPU latency benchmark.
-- `379d0d9` Phase 14: Add layout-aware classification comparison.
+- a57b6fe Phase 12: Add semantic search evaluation metrics.
+- 7fc7e00 Phase 13: Add CPU latency benchmark.
+- 379d0d9 Phase 14: Add layout-aware classification comparison.
+- 4cdb5b3 Phase 15: Add local authentication and fix PDF upload handling.
+- 54402ba Phase 16: Add persistent document storage and duplicate protection.
 
 ## Known Limitations
 
