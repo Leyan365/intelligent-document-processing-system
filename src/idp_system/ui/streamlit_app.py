@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import base64
+import html
+import re
 import sys
 from pathlib import Path
-import re
 from typing import Any
 from uuid import uuid4
 
@@ -24,33 +26,24 @@ from idp_system.database.document_repository import (
 )
 from idp_system.system import IDPSystem
 
-
 SUPPORTED_UPLOAD_TYPES = ["pdf", "png", "jpg", "jpeg"]
 UPLOAD_STORAGE_ROOT = Path("data/app/uploads")
 PREVIEW_CHARS = 1000
 
 
 def main() -> None:
-    st.set_page_config(
-        page_title="Intelligent Document Processing System",
-        layout="wide",
-    )
+    st.set_page_config(page_title="DocAnalyzer — AI Document Processing", page_icon="📋", layout="wide")
+    apply_custom_styles()
     initialize_auth_db()
     initialize_document_tables()
     _ensure_session_state()
-
-    st.title("Intelligent Document Processing System")
 
     if not st.session_state.authenticated:
         render_auth_page()
         return
 
     _ensure_active_user_state()
-    _render_authenticated_sidebar()
-    page = st.sidebar.radio(
-        "Navigation",
-        ["Upload & Process", "Search", "Document History"],
-    )
+    page = _render_authenticated_sidebar()
 
     if page == "Upload & Process":
         render_upload_page()
@@ -58,6 +51,402 @@ def main() -> None:
         render_search_page()
     else:
         render_history_page()
+
+
+def apply_custom_styles() -> None:
+    st.markdown(
+        """
+        <style>
+        /* ─── Design tokens ─────────────────────────────────────────── */
+        :root {
+            --c-bg:          #f0f6ff;
+            --c-surface:     #ffffff;
+            --c-surface-2:   #f5f9ff;
+            --c-border:      #dbeafe;
+            --c-border-soft: #e8f1fd;
+            --c-text:        #0f172a;
+            --c-text-muted:  #4b6282;
+            --c-primary:     #2563eb;
+            --c-primary-dk:  #1d4ed8;
+            --c-primary-lt:  #eff6ff;
+            --c-primary-mid: #bfdbfe;
+            --c-shadow:      0 2px 12px rgba(37, 99, 235, 0.08);
+            --c-shadow-lg:   0 8px 32px rgba(37, 99, 235, 0.12);
+            --r-card:        1rem;
+            --r-btn:         0.6rem;
+            --r-input:       0.55rem;
+        }
+
+        /* ─── App shell ─────────────────────────────────────────────── */
+        .stApp {
+            background: var(--c-bg);
+            color: var(--c-text);
+        }
+        .block-container {
+            padding-top: 2.25rem;
+            padding-bottom: 4rem;
+            max-width: 1200px;
+        }
+
+        /* ─── Typography ─────────────────────────────────────────────── */
+        h1, h2, h3, h4 {
+            color: var(--c-text);
+            letter-spacing: -0.01em;
+            font-weight: 700;
+        }
+        [data-testid="stCaptionContainer"] { color: var(--c-text-muted); font-size: 0.82rem; }
+
+        /* ─── Sidebar ────────────────────────────────────────────────── */
+        [data-testid="stSidebar"] {
+            background: var(--c-surface);
+            border-right: 1px solid var(--c-border);
+        }
+        [data-testid="stSidebar"] * { color: var(--c-text); }
+        [data-testid="stSidebar"] [data-testid="stCaptionContainer"] { color: var(--c-text-muted); }
+        [data-testid="stSidebar"] [role="radiogroup"] label {
+            border-radius: 0.5rem;
+            padding: 0.4rem 0.6rem;
+            transition: background 0.15s;
+        }
+        [data-testid="stSidebar"] [role="radiogroup"] label:hover {
+            background: var(--c-primary-lt);
+        }
+
+        /* ─── Cards / bordered containers ───────────────────────────── */
+        [data-testid="stVerticalBlockBorderWrapper"] {
+            border: 1px solid var(--c-border-soft);
+            border-radius: var(--r-card);
+            background: var(--c-surface);
+            box-shadow: var(--c-shadow);
+            padding: 0.25rem 0.25rem;
+        }
+
+        /* ─── Native Streamlit metrics ───────────────────────────────── */
+        [data-testid="stMetric"] {
+            background: var(--c-primary-lt);
+            border: 1px solid var(--c-primary-mid);
+            border-radius: 0.8rem;
+            padding: 1rem 1.1rem;
+        }
+        [data-testid="stMetricLabel"] p {
+            color: var(--c-primary);
+            font-weight: 700;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        [data-testid="stMetricValue"] {
+            color: var(--c-text);
+            font-weight: 800;
+            font-size: 1.35rem;
+        }
+
+        /* ─── Buttons ────────────────────────────────────────────────── */
+        div[data-testid="stButton"] > button,
+        div[data-testid="stFormSubmitButton"] > button {
+            border-radius: var(--r-btn);
+            font-weight: 600;
+            font-size: 0.9rem;
+            border: 1px solid var(--c-border);
+            background: var(--c-surface);
+            color: var(--c-text);
+            transition: all 0.15s;
+        }
+        div[data-testid="stButton"] > button:hover,
+        div[data-testid="stFormSubmitButton"] > button:hover {
+            border-color: var(--c-primary);
+            color: var(--c-primary);
+            background: var(--c-primary-lt);
+        }
+        div[data-testid="stButton"] > button[kind="primary"],
+        div[data-testid="stFormSubmitButton"] > button[kind="primary"] {
+            background: var(--c-primary);
+            color: #ffffff;
+            border-color: var(--c-primary);
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+        }
+        div[data-testid="stButton"] > button[kind="primary"]:hover,
+        div[data-testid="stFormSubmitButton"] > button[kind="primary"]:hover {
+            background: var(--c-primary-dk);
+            border-color: var(--c-primary-dk);
+            color: #ffffff;
+        }
+
+        /* ─── Inputs / textarea ──────────────────────────────────────── */
+        input, textarea, [data-baseweb="input"], [data-baseweb="textarea"] {
+            border-radius: var(--r-input) !important;
+            border-color: var(--c-border) !important;
+            background: var(--c-surface) !important;
+            color: var(--c-text) !important;
+            font-size: 0.95rem !important;
+        }
+        input:focus, textarea:focus {
+            border-color: var(--c-primary) !important;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12) !important;
+        }
+        /* Disabled textarea: keep text legible */
+        textarea:disabled,
+        [data-baseweb="textarea"] textarea:disabled {
+            color: var(--c-text) !important;
+            -webkit-text-fill-color: var(--c-text) !important;
+            opacity: 1 !important;
+            background: var(--c-surface-2) !important;
+        }
+
+        /* ─── File uploader ──────────────────────────────────────────── */
+        [data-testid="stFileUploader"] section {
+            background: var(--c-primary-lt);
+            border: 2px dashed var(--c-primary-mid);
+            border-radius: var(--r-card);
+            padding: 1.5rem;
+        }
+        [data-testid="stFileUploader"] section:hover {
+            border-color: var(--c-primary);
+            background: #e0edff;
+        }
+
+        /* ─── DataFrame ──────────────────────────────────────────────── */
+        [data-testid="stDataFrame"] {
+            border: 1px solid var(--c-border);
+            border-radius: var(--r-card);
+            overflow: hidden;
+            box-shadow: var(--c-shadow);
+        }
+
+        /* ─── Tabs ───────────────────────────────────────────────────── */
+        [data-testid="stTabs"] [data-baseweb="tab-list"] {
+            background: var(--c-surface-2);
+            border-radius: 0.6rem;
+            padding: 0.25rem;
+            gap: 0.25rem;
+            border-bottom: none;
+        }
+        [data-testid="stTabs"] [data-baseweb="tab"] {
+            border-radius: 0.45rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--c-text-muted);
+        }
+        [data-testid="stTabs"] [aria-selected="true"] {
+            background: var(--c-surface) !important;
+            color: var(--c-primary) !important;
+            box-shadow: var(--c-shadow);
+        }
+
+        /* ─── Slider ─────────────────────────────────────────────────── */
+        [data-testid="stSlider"] [data-baseweb="slider"] [role="slider"] {
+            background: var(--c-primary);
+        }
+
+        /* ━━━ Custom component classes ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+        /* Hero / auth shell */
+        .idp-auth-shell { max-width: 900px; margin: 0 auto; padding: 3rem 0 1.5rem; }
+        .idp-hero { text-align: center; margin-bottom: 2rem; }
+        .idp-eyebrow {
+            display: inline-flex; align-items: center; gap: 0.4rem;
+            padding: 0.3rem 0.85rem; border-radius: 999px;
+            background: var(--c-primary-lt); color: var(--c-primary);
+            border: 1px solid var(--c-primary-mid);
+            font-size: 0.75rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.06em;
+            margin-bottom: 0.9rem;
+        }
+        .idp-hero h1 {
+            font-size: clamp(2rem, 4.5vw, 3rem);
+            line-height: 1.1; color: var(--c-text);
+            margin: 0.5rem 0 0.75rem;
+        }
+        .idp-hero p {
+            color: var(--c-text-muted); font-size: 1.05rem;
+            line-height: 1.7; max-width: 640px; margin: 0 auto;
+        }
+
+        /* Feature cards on auth page */
+        .idp-feature-grid {
+            display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 1rem; margin: 1.75rem 0 0.5rem;
+        }
+        .idp-feature-card {
+            background: var(--c-surface); border: 1px solid var(--c-border-soft);
+            border-radius: var(--r-card); padding: 1.25rem 1.1rem;
+            box-shadow: var(--c-shadow);
+        }
+        .idp-feature-card .icon {
+            font-size: 1.4rem; margin-bottom: 0.6rem; display: block;
+        }
+        .idp-feature-card strong {
+            display: block; color: var(--c-text); font-size: 0.95rem;
+            font-weight: 700; margin-bottom: 0.35rem;
+        }
+        .idp-feature-card span {
+            color: var(--c-text-muted); font-size: 0.875rem; line-height: 1.55;
+        }
+
+        /* Page header */
+        .idp-page-header { margin-bottom: 1.75rem; padding-bottom: 1.25rem; border-bottom: 1px solid var(--c-border-soft); }
+        .idp-page-header h1 {
+            font-size: clamp(1.6rem, 3vw, 2.1rem);
+            margin: 0.5rem 0 0.4rem; color: var(--c-text);
+        }
+        .idp-page-header p {
+            color: var(--c-text-muted); font-size: 0.95rem;
+            line-height: 1.6; margin: 0;
+        }
+
+        /* Metric grid */
+        .idp-metric-grid {
+            display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 1rem; margin: 1.15rem 0;
+        }
+        .idp-metric-grid.wide .idp-metric-card { min-height: 7.2rem; }
+        .idp-metric-card {
+            background: var(--c-surface); border: 1px solid var(--c-border-soft);
+            border-radius: var(--r-card); padding: 1.25rem 1.35rem;
+            box-shadow: var(--c-shadow); min-width: 0;
+        }
+        .idp-metric-card strong {
+            display: block; color: var(--c-primary);
+            font-size: 0.74rem; font-weight: 800;
+            text-transform: uppercase; letter-spacing: 0.05em;
+            margin-bottom: 0.45rem;
+        }
+        .idp-metric-card .value {
+            display: block; color: var(--c-text);
+            font-size: 1.7rem; font-weight: 850; line-height: 1.2;
+            margin-bottom: 0.25rem; overflow-wrap: anywhere;
+        }
+        .idp-metric-card span:last-child { color: var(--c-text-muted); font-size: 0.86rem; line-height: 1.4; }
+
+        .idp-status-grid {
+            display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 0.9rem; margin-top: 1rem;
+        }
+        .idp-status-card {
+            background: var(--c-surface-2);
+            border: 1px solid var(--c-border-soft);
+            border-radius: var(--r-card);
+            padding: 0.95rem 1rem;
+        }
+        .idp-status-card strong {
+            display: block;
+            color: var(--c-text-muted);
+            font-size: 0.74rem;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+        }
+        .idp-pdf-preview {
+            border: 1px solid var(--c-border-soft);
+            border-radius: var(--r-card);
+            height: 650px;
+            width: 100%;
+            background: var(--c-surface-2);
+        }
+
+        /* Empty state */
+        .idp-empty-state {
+            text-align: center; padding: 2.5rem 1.5rem;
+            background: var(--c-surface); border: 1px dashed var(--c-primary-mid);
+            border-radius: var(--r-card);
+        }
+        .idp-empty-state .empty-icon { font-size: 2rem; margin-bottom: 0.75rem; display: block; }
+        .idp-empty-state h3 { color: var(--c-text); margin: 0 0 0.4rem; font-size: 1.05rem; font-weight: 700; }
+        .idp-empty-state p { color: var(--c-text-muted); font-size: 0.9rem; line-height: 1.55; margin: 0; }
+
+        /* Info card */
+        .idp-info-card {
+            background: var(--c-primary-lt); border: 1px solid var(--c-primary-mid);
+            border-radius: var(--r-card); padding: 1rem 1.1rem;
+        }
+        .idp-info-card h3 { color: var(--c-primary-dk); margin: 0 0 0.3rem; font-size: 0.95rem; font-weight: 700; }
+        .idp-info-card p { color: var(--c-primary-dk); font-size: 0.88rem; line-height: 1.55; margin: 0; opacity: 0.85; }
+
+        /* Auth note */
+        .idp-note {
+            background: var(--c-surface-2); border: 1px solid var(--c-border);
+            border-radius: 0.7rem; padding: 0.75rem 1rem;
+            color: var(--c-text-muted); font-size: 0.82rem; line-height: 1.5;
+            margin-top: 0.75rem;
+        }
+
+        /* Sidebar brand */
+        .idp-sidebar-brand { padding: 0.5rem 0 1rem; }
+        .idp-sidebar-brand .mark {
+            display: inline-flex; width: 2.4rem; height: 2.4rem;
+            align-items: center; justify-content: center;
+            border-radius: 0.65rem;
+            background: var(--c-primary); color: #fff;
+            font-weight: 900; font-size: 0.85rem;
+            margin-bottom: 0.65rem;
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+        }
+        .idp-sidebar-brand h2 { color: var(--c-text); margin: 0; font-size: 1.15rem; font-weight: 800; }
+        .idp-sidebar-brand p { margin: 0.2rem 0 0; font-size: 0.8rem; color: var(--c-text-muted); }
+
+        /* Sidebar user card */
+        .idp-sidebar-card {
+            background: var(--c-primary-lt); border: 1px solid var(--c-primary-mid);
+            border-radius: 0.75rem; padding: 0.85rem 1rem; margin: 0.75rem 0 1rem;
+        }
+        .idp-sidebar-card span {
+            display: block; color: var(--c-primary);
+            font-size: 0.7rem; text-transform: uppercase;
+            letter-spacing: 0.06em; font-weight: 700; margin-bottom: 0.2rem;
+        }
+        .idp-sidebar-card strong { color: var(--c-text); font-size: 0.95rem; font-weight: 700; }
+
+        /* Badges */
+        .idp-badge {
+            display: inline-flex; align-items: center;
+            padding: 0.28rem 0.75rem; border-radius: 999px;
+            font-weight: 700; font-size: 0.8rem; line-height: 1.3;
+            border: 1px solid transparent; margin: 0.1rem 0;
+        }
+        .idp-badge-neutral { background: var(--c-primary-lt); color: var(--c-primary-dk); border-color: var(--c-primary-mid); }
+        .idp-badge-success { background: #ecfdf5; color: #065f46; border-color: #a7f3d0; }
+        .idp-badge-warning { background: #fffbeb; color: #78350f; border-color: #fde68a; }
+        .idp-badge-danger  { background: #fef2f2; color: #991b1b; border-color: #fecaca; }
+
+        /* Pipeline stage tracker */
+        .idp-stage-list {
+            display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 0.6rem; padding: 0.85rem; margin: 0.9rem 0;
+            background: var(--c-surface); border: 1px solid var(--c-border-soft);
+            border-radius: var(--r-card);
+        }
+        .idp-stage {
+            border-radius: 0.55rem; padding: 0.75rem 0.85rem;
+            border: 1px solid var(--c-border);
+            background: var(--c-surface-2);
+            color: var(--c-text-muted); font-size: 0.83rem; font-weight: 600;
+        }
+        .idp-stage.done   { background: #ecfdf5; color: #065f46; border-color: #a7f3d0; }
+        .idp-stage.active { background: var(--c-primary-lt); color: var(--c-primary-dk); border-color: var(--c-primary-mid); }
+        .idp-stage.pending { opacity: 0.55; }
+
+        /* Warnings list */
+        .idp-warning-list { margin: 0.65rem 0 0; padding-left: 1.1rem; color: #78350f; }
+        .idp-warning-list li { margin-bottom: 0.35rem; font-size: 0.88rem; line-height: 1.5; }
+
+        /* Section divider label */
+        .idp-section-label {
+            font-size: 0.72rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.07em;
+            color: var(--c-primary); margin: 1.5rem 0 0.6rem;
+        }
+
+        /* ─── Responsive ─────────────────────────────────────────────── */
+        @media (max-width: 900px) {
+            .idp-feature-grid, .idp-metric-grid, .idp-stage-list { grid-template-columns: 1fr; }
+            .block-container { padding-top: 1.25rem; }
+            .idp-hero h1 { font-size: 1.8rem; }
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 def _ensure_session_state() -> None:
@@ -94,25 +483,40 @@ def _reset_document_session_state(user_id: int | None = None) -> None:
 
 
 def render_auth_page() -> None:
-    st.info(
-        "This is a local academic prototype authentication system. "
-        "It does not include enterprise-grade controls such as MFA or RBAC yet."
+    hero_html = (
+        '<div class="idp-auth-shell">'
+        '<div class="idp-hero">'
+        '<span class="idp-eyebrow">AI Document Analyzer</span>'
+        '<h1>Intelligent Document<br>Processing System</h1>'
+        '<p>Upload invoices, receipts, and purchase orders. Get instant extraction, validation, and semantic search, all running locally.</p>'
+        '</div>'
+        '<div class="idp-feature-grid">'
+        '<div class="idp-feature-card"><span class="icon">Extract</span><strong>Automated Extraction</strong><span>OCR, classification, and field extraction in one seamless local pipeline.</span></div>'
+        '<div class="idp-feature-card"><span class="icon">Private</span><strong>Private History</strong><span>Every document stays scoped to your account; no data leaves your machine.</span></div>'
+        '<div class="idp-feature-card"><span class="icon">Search</span><strong>Semantic Search</strong><span>Find documents by meaning, supplier, amount, or document type instantly.</span></div>'
+        '</div>'
+        '</div>'
     )
-    login_tab, register_tab = st.tabs(["Login", "Register"])
+    st.markdown(hero_html, unsafe_allow_html=True)
 
-    with login_tab:
-        render_login_form()
-
-    with register_tab:
-        render_register_form()
+    center = st.columns([1, 1.5, 1])
+    with center[1]:
+        with st.container(border=True):
+            login_tab, register_tab = st.tabs(["Sign in", "Create account"])
+            with login_tab:
+                render_login_form()
+            with register_tab:
+                render_register_form()
+            note_html = '<div class="idp-note">Local prototype: authentication is for demo purposes only and does not include enterprise controls such as MFA or RBAC.</div>'
+            st.markdown(note_html, unsafe_allow_html=True)
 
 
 def render_login_form() -> None:
-    st.subheader("Login")
+    st.markdown("#### Welcome back 👋")
     with st.form("login_form"):
         username_or_email = st.text_input("Username or email")
         password = st.text_input("Password", type="password")
-        submitted = st.form_submit_button("Login", type="primary")
+        submitted = st.form_submit_button("Login", type="primary", width="stretch")
 
     if not submitted:
         return
@@ -132,13 +536,13 @@ def render_login_form() -> None:
 
 
 def render_register_form() -> None:
-    st.subheader("Register")
+    st.markdown("#### Create your account")
     with st.form("register_form"):
         username = st.text_input("Username")
         email = st.text_input("Email (optional)")
         password = st.text_input("Password", type="password")
         confirm_password = st.text_input("Confirm password", type="password")
-        submitted = st.form_submit_button("Register", type="primary")
+        submitted = st.form_submit_button("Register", type="primary", width="stretch")
 
     if not submitted:
         return
@@ -155,11 +559,33 @@ def render_register_form() -> None:
     st.success("Registration successful. Please use the Login tab to sign in.")
 
 
-def _render_authenticated_sidebar() -> None:
-    st.sidebar.markdown(f"Signed in as **{st.session_state.username}**")
-    st.sidebar.caption("Local academic prototype auth. No MFA/RBAC yet.")
-    if st.sidebar.button("Logout"):
+def _render_authenticated_sidebar() -> str:
+    brand_html = (
+        '<div class="idp-sidebar-brand">'
+        '<div class="mark">IDP</div>'
+        '<h2>DocAnalyzer</h2>'
+        '<p>AI-powered document intelligence</p>'
+        '</div>'
+    )
+    st.sidebar.markdown(brand_html, unsafe_allow_html=True)
+    user_html = (
+        '<div class="idp-sidebar-card">'
+        '<span>Signed in as</span>'
+        f'<strong>{_html_escape(st.session_state.username)}</strong>'
+        '</div>'
+    )
+    st.sidebar.markdown(user_html, unsafe_allow_html=True)
+    st.sidebar.caption("Navigation")
+    page = st.sidebar.radio(
+        "Navigation",
+        ["Upload & Process", "Search", "Document History"],
+        label_visibility="collapsed",
+    )
+    st.sidebar.divider()
+    st.sidebar.caption("Local demo ? per-user document isolation")
+    if st.sidebar.button("Sign out", width="stretch"):
         _logout()
+    return page
 
 
 def _logout() -> None:
@@ -171,32 +597,39 @@ def _logout() -> None:
 
 
 def render_upload_page() -> None:
-    st.header("Upload & Process")
+    _page_header(
+        "Upload & Process",
+        "Drop in a PDF or image and the pipeline handles everything — text extraction, classification, field parsing, and search indexing.",
+    )
 
     with st.container(border=True):
-        st.markdown("**Start with a document**")
-        st.write("Upload a digital PDF, scanned PDF, or document image. The system will extract text, classify the document, extract key fields, and index it for search.")
+        st.markdown("### 📄 Choose a document")
+        st.caption(
+            "Supports digital PDFs, scanned PDFs, and document images (PNG, JPG, JPEG). Processing runs entirely on your local machine."
+        )
         uploaded_file = st.file_uploader(
             "Choose a PDF or image file",
             type=SUPPORTED_UPLOAD_TYPES,
             accept_multiple_files=False,
+            label_visibility="collapsed",
         )
+        st.caption("Accepted formats: PDF · PNG · JPG · JPEG")
 
     if uploaded_file is None:
-        with st.container(border=True):
-            st.markdown("**No document uploaded yet**")
-            st.write("Upload a PDF or image to start processing.")
-            st.caption("Supported formats: PDF, PNG, JPG, and JPEG.")
+        _empty_state(
+            "No document selected",
+            "Upload a PDF or image above to begin — the pipeline will extract, classify, and validate it automatically.",
+        )
         return
 
     with st.container(border=True):
-        st.markdown("**Selected File**")
+        st.markdown("### 📎 Selected file")
         col_name, col_type, col_size = st.columns(3)
         col_name.metric("Name", uploaded_file.name)
         col_type.metric("Type", uploaded_file.type or "Unknown")
         col_size.metric("Size", _format_bytes(uploaded_file.size))
 
-    if st.button("Process Document", type="primary", width="stretch"):
+    if st.button("⚡ Run Processing Pipeline", type="primary", width="stretch"):
         user_id = _current_user_id()
         file_bytes = uploaded_file.getvalue()
         file_hash = compute_file_hash(file_bytes)
@@ -205,7 +638,10 @@ def render_upload_page() -> None:
         if duplicate is not None:
             result = _result_from_document_record(duplicate)
             _remember_result(result)
-            st.info("Duplicate upload detected. Existing processed result was loaded.")
+            _info_card(
+                "Already processed",
+                "This exact file was found in your document history — the saved result has been loaded below.",
+            )
             render_result(result)
             return
 
@@ -216,10 +652,8 @@ def render_upload_page() -> None:
         try:
             _render_stages(stages, active_index=0)
             progress.progress(20, text="Text Extraction")
-
             _render_stages(stages, active_index=1)
             progress.progress(45, text="Classification")
-
             _render_stages(stages, active_index=2)
             progress.progress(70, text="Information Extraction")
 
@@ -227,7 +661,6 @@ def render_upload_page() -> None:
 
             _render_stages(stages, active_index=3)
             progress.progress(90, text="Search Indexing")
-
             saved = save_processed_document(
                 user_id=user_id,
                 uploaded_file_metadata={
@@ -244,9 +677,11 @@ def render_upload_page() -> None:
             _mark_search_index_stale()
             _render_stages(stages, active_index=4)
             progress.progress(100, text="Complete")
+            # Clear the stage tracker and progress bar so they don't persist below results
+            stages.empty()
+            progress.empty()
 
             st.toast("Document processed and saved successfully")
-            st.success("Document processed and saved successfully.")
             render_result(result)
         except Exception as exc:
             st.error("Document processing failed.")
@@ -254,37 +689,51 @@ def render_upload_page() -> None:
 
 
 def render_result(result: dict[str, Any]) -> None:
-    st.subheader("Processing Result")
-    left, right = st.columns([2, 1], gap="large")
+    st.markdown("## Processing result")
+    validation = result.get("validation") if isinstance(result.get("validation"), dict) else {}
+    score = validation.get("validation_score") if validation else None
+    warnings = validation.get("total_warnings") if validation else None
 
-    with left:
+    _metric_grid(
+        [
+            ("Document type", _classification_label(result), "Detected class"),
+            ("Validation score", _display_value(score), "Overall confidence"),
+            ("Warnings", _display_value(warnings), "Items requiring attention"),
+        ],
+        wide=True,
+    )
+    st.divider()
+
+    preview_col, text_col = st.columns([1.1, 1], gap="large")
+    with preview_col:
+        render_document_preview(result.get("stored_path"), result.get("source_filename"))
+    with text_col:
         with st.container(border=True):
-            st.markdown("**Document Preview**")
+            st.markdown("### Extracted text preview")
             text = str(result.get("text", ""))
             preview = _snippet(text, PREVIEW_CHARS)
-            st.text_area("Extracted text preview", value=preview, height=260, disabled=True)
+            st.text_area(
+                "Extracted text preview",
+                value=preview,
+                height=340,
+                disabled=True,
+                label_visibility="collapsed",
+            )
             if len(text) > PREVIEW_CHARS:
-                st.caption(f"Preview limited to {PREVIEW_CHARS} characters.")
+                st.caption(f"Showing first {PREVIEW_CHARS:,} characters of extracted text.")
 
-    with right:
+    detail_col, validation_col = st.columns([1, 1], gap="large")
+    with detail_col:
         with st.container(border=True):
-            st.markdown("**Document Type**")
+            st.markdown("### Classification")
             _badge(_classification_label(result))
+            source_filename = result.get("source_filename")
+            if source_filename:
+                st.caption(f"File: {_display_value(source_filename)}")
 
-        st.markdown("**Extracted Fields**")
-        field_cols = st.columns(2)
-        FIELD_LABELS = {
-            "invoice_number": "Invoice / Order No.",
-            "date": "Date",
-            "amount": "Amount",
-            "supplier": "Supplier",
-        }
+        render_extracted_fields(result)
 
-        for index, field_name in enumerate(("invoice_number", "date", "amount", "supplier")):
-            with field_cols[index % 2]:
-                label = FIELD_LABELS.get(field_name, field_name.replace("_", " ").title())
-                _editable_field_card(result, field_name, label)
-
+    with validation_col:
         render_validation_section(result)
 
 
@@ -294,58 +743,64 @@ def render_validation_section(result: dict[str, Any]) -> None:
         return
 
     with st.container(border=True):
-        st.markdown("**Validation & Confidence**")
+        st.markdown("### Validation & confidence")
         pipeline_status = str(validation.get("pipeline_status", "processed"))
         _status_badge(_pipeline_status_label(pipeline_status), pipeline_status)
 
         score = validation.get("validation_score")
         total_warnings = validation.get("total_warnings", 0)
         critical_count = validation.get("critical_warning_count", 0)
-        st.caption(
-            f"Score: {_display_value(score)} | "
-            f"Warnings: {total_warnings} | Critical: {critical_count}"
+        _metric_grid(
+            [
+                ("Validation score", _display_value(score), "Combined quality signal"),
+                ("Total warnings", _display_value(total_warnings), "Review indicators found"),
+                ("Critical warnings", _display_value(critical_count), "High-priority issues"),
+            ],
+            wide=True,
         )
 
-        status_cols = st.columns(3)
-        status_cols[0].caption(
-            f"OCR quality: {_component_status(validation.get('ocr_quality'))}"
-        )
-        status_cols[1].caption(
-            f"Classification: {_component_status(validation.get('classification'))}"
-        )
-        status_cols[2].caption(
-            f"Fields: {_component_status(validation.get('fields'))}"
+        _status_card_grid(
+            [
+                ("OCR quality", _component_status(validation.get("ocr_quality")), _component_status_key(validation.get("ocr_quality"))),
+                ("Classification", _component_status(validation.get("classification")), _component_status_key(validation.get("classification"))),
+                ("Fields", _component_status(validation.get("fields")), _component_status_key(validation.get("fields"))),
+            ]
         )
 
         warnings = validation.get("warnings")
         if isinstance(warnings, list) and warnings:
             shown = [str(warning) for warning in warnings[:4]]
-            st.caption("Warnings: " + " | ".join(shown))
-            if len(warnings) > len(shown):
-                st.caption(f"+ {len(warnings) - len(shown)} more")
+            warning_items = "".join(f"<li>{_html_escape(warning)}</li>" for warning in shown)
+            extra = len(warnings) - len(shown)
+            if extra > 0:
+                warning_items += f"<li>{_html_escape(f'+ {extra} more warnings')}</li>"
+            warning_html = f'<div class="idp-info-card"><h3>Items to review</h3><ul class="idp-warning-list">{warning_items}</ul></div>'
+            st.markdown(warning_html, unsafe_allow_html=True)
 
 
 def render_search_page() -> None:
-    st.header("Search")
-    st.info(
-        "Semantic search retrieves relevant processed documents and snippets. "
-        "It does not generate answers."
+    _page_header(
+        "Search Documents",
+        "Search across all processed documents using natural language — by supplier, amount, date, or document content.",
     )
-    _ensure_search_index_for_current_user()
+    with st.spinner("Building search index..."):
+        _ensure_search_index_for_current_user()
 
     with st.container(border=True):
+        st.markdown("### 🔎 Search your documents")
         query = st.text_input(
             "Search documents",
-            placeholder="Search by meaning, supplier, amount, or document type",
+            placeholder="e.g. invoice from Lalan Rubbers, purchase order over 5000, receipt for office supplies",
+            label_visibility="collapsed",
         )
-        st.caption(
-            "Try queries such as 'invoice from supplier', 'purchase order amount', "
-            "or 'documents from Lalan Rubbers'."
-        )
-        k = st.slider("Results", min_value=1, max_value=10, value=5)
+        st.caption("Tip: search by meaning, not just keywords — try supplier names, amounts, or document descriptions.")
+        k = st.slider("Number of results to show", min_value=1, max_value=10, value=5)
 
     if not query:
-        st.info("Enter a query to search processed documents.")
+        _empty_state(
+            "Ready to search",
+            "Type a query above to find documents by supplier, amount, date, or content.",
+        )
         return
 
     try:
@@ -356,11 +811,13 @@ def render_search_page() -> None:
         return
 
     if not results:
-        st.warning("No matching documents found. Try a different query.")
+        _empty_state(
+            "No matching documents found",
+            "Try a different supplier, amount, document type, or phrase from the document.",
+        )
         return
 
-    st.subheader("Search Results")
-
+    st.markdown("## Search results")
     for rank, result in enumerate(results, start=1):
         with st.container(border=True):
             fields = _fields_from_result(result)
@@ -368,39 +825,40 @@ def render_search_page() -> None:
             doc_type = result.get("type") or metadata.get("type") or "unknown"
             confidence = result.get("confidence", metadata.get("confidence"))
             confidence_source = result.get("confidence_source", metadata.get("confidence_source"))
+            filename = result.get("filename") or metadata.get("filename") or metadata.get("source")
 
             header_left, header_right = st.columns([3, 1])
             with header_left:
-                st.markdown(f"**#{rank} - {result.get('id', 'unknown')}**")
+                st.markdown(f"### #{rank} — {_display_value(filename) if filename else 'Document'}")
                 _badge(_classification_label_text(doc_type, confidence, confidence_source))
+                if filename:
+                    st.caption(f"📁 {_display_value(filename)}")
             with header_right:
-                st.metric("Similarity Score", _format_score(result.get("score")))
+                st.metric("Match score", _format_score(result.get("score")))
 
-            st.markdown("**Key Information**")
+            st.divider()
+            st.markdown("**Key information**")
             info_cols = st.columns(4)
-            info_cols[0].markdown(
-                f"**Supplier**  \n`{_display_value(fields.get('supplier'))}`"
-            )
-            info_cols[1].markdown(
-                f"**Date**  \n`{_display_value(fields.get('date'))}`"
-            )
-            info_cols[2].markdown(
-                f"**Amount**  \n`{_display_value(fields.get('amount'))}`"
-            )
-            info_cols[3].markdown(
-                f"**Invoice / Order No.**  \n`{_display_value(fields.get('invoice_number'))}`"
-            )
-
-            st.markdown("**Matched Preview**")
-            st.markdown(_highlight_query(_snippet(str(result.get("text", "")), 200), query))
+            info_cols[0].markdown(f"**Supplier**  \n{_display_value(fields.get('supplier'))}")
+            info_cols[1].markdown(f"**Date**  \n{_display_value(fields.get('date'))}")
+            info_cols[2].markdown(f"**Amount**  \n{_display_value(fields.get('amount'))}")
+            info_cols[3].markdown(f"**Invoice / Order No.**  \n{_display_value(fields.get('invoice_number'))}")
+            st.markdown("**Matched content preview**")
+            st.markdown(_highlight_query(_snippet(str(result.get("text", "")), 280), query))
 
 
 def render_history_page() -> None:
-    st.header("Document History")
+    _page_header(
+        "Document History",
+        "All documents processed under your account, stored locally in the SQLite database.",
+    )
     records = list_documents_for_user(_current_user_id())
 
     if not records:
-        st.info("No processed documents yet\n\nProcess your first document to see results here.")
+        _empty_state(
+            "No documents yet",
+            "Upload and process your first document — it will appear here once complete.",
+        )
         return
 
     rows = []
@@ -411,18 +869,20 @@ def render_history_page() -> None:
         rows.append(
             {
                 "filename": record.get("original_filename"),
-                "processed_at": record.get("created_at"),
-                "status": _pipeline_status_label(str(validation.get("pipeline_status", "processed"))),
-                "type": result.get("type"),
+                "document_type": _document_type_label(result.get("type")),
+                "created_at": record.get("created_at"),
+                "validation_status": _pipeline_status_label(str(validation.get("pipeline_status", "processed"))),
                 "supplier": fields.get("supplier"),
                 "date": fields.get("date"),
                 "amount": fields.get("amount"),
             }
         )
 
-    st.dataframe(rows, width="stretch", hide_index=True)
+    # Full sortable table in expander — cards below are the primary view
+    with st.expander(f"📋 View all {len(rows)} documents as table", expanded=False):
+        st.dataframe(rows, width="stretch", hide_index=True)
 
-    st.markdown("**Recent Documents**")
+    st.markdown("## Recent documents")
     for record in records[:5]:
         result = _result_from_document_record(record)
         fields = result.get("fields") or {}
@@ -430,7 +890,7 @@ def render_history_page() -> None:
         with st.container(border=True):
             top_left, top_right = st.columns([3, 1])
             with top_left:
-                st.markdown(f"**{record.get('original_filename')}**")
+                st.markdown(f"### 📄 {_display_value(record.get('original_filename'))}")
                 _badge(
                     _classification_label_text(
                         result.get("type"),
@@ -444,11 +904,12 @@ def render_history_page() -> None:
                     _pipeline_status_label(str(validation.get("pipeline_status", "processed"))),
                     str(validation.get("pipeline_status", "processed")),
                 )
+            st.divider()
             cols = st.columns(3)
-            cols[0].caption(f"Supplier: {_display_value(fields.get('supplier'))}")
-            cols[1].caption(f"Date: {_display_value(fields.get('date'))}")
-            cols[2].caption(f"Amount: {_display_value(fields.get('amount'))}")
-    st.caption("History is loaded from the local database for the signed-in user.")
+            cols[0].metric("Supplier", _display_value(fields.get("supplier")))
+            cols[1].metric("Date", _display_value(fields.get("date")))
+            cols[2].metric("Amount", _display_value(fields.get("amount")))
+    st.caption("Showing 5 most recent · expand the table above to see all documents")
 
 
 def _save_uploaded_file_bytes(uploaded_file: Any, file_bytes: bytes, user_id: int) -> Path:
@@ -477,6 +938,7 @@ def _result_from_document_record(record: dict[str, Any]) -> dict[str, Any]:
     result.setdefault("id", str(record.get("document_id")))
     result["persistent_document_id"] = record.get("document_id")
     result["source_filename"] = record.get("original_filename")
+    result["stored_path"] = record.get("stored_path")
     return result
 
 
@@ -522,6 +984,7 @@ def _ensure_search_index_for_current_user() -> None:
                 "confidence": result.get("confidence"),
                 "confidence_source": result.get("confidence_source"),
                 "fields": fields,
+                "filename": record.get("original_filename"),
                 "source": record.get("stored_path"),
             }
         )
@@ -554,22 +1017,18 @@ def _field_value(value: Any) -> str:
 
 
 def _render_stages(container: Any, active_index: int) -> None:
-    stage_names = [
-        "Text Extraction",
-        "Classification",
-        "Information Extraction",
-        "Search Indexing",
-    ]
-    lines = []
+    stage_names = ["Text Extraction", "Classification", "Information Extraction", "Search Indexing"]
+    stage_html = []
     for index, stage_name in enumerate(stage_names):
         if index < active_index:
-            marker = "done"
+            state = "done"
         elif index == active_index:
-            marker = "active"
+            state = "active"
         else:
-            marker = "pending"
-        lines.append(f"[{marker}] {stage_name}")
-    container.code("\n".join(lines), language="text")
+            state = "pending"
+        stage_html.append(f'<div class="idp-stage {state}">{_html_escape(stage_name)}</div>')
+    stage_markup = "".join(stage_html)
+    container.markdown(f'<div class="idp-stage-list">{stage_markup}</div>', unsafe_allow_html=True)
 
 
 def _snippet(text: str, length: int = 500) -> str:
@@ -577,44 +1036,53 @@ def _snippet(text: str, length: int = 500) -> str:
     return text[:length] + ("..." if len(text) > length else "")
 
 
+def render_extracted_fields(result: dict[str, Any]) -> None:
+    st.markdown("### Extracted fields")
+    st.caption("Fields are editable; correct any extraction errors below.")
+    field_layout = (
+        ("invoice_number", "Invoice / Order No."),
+        ("amount", "Amount"),
+        ("date", "Date"),
+        ("supplier", "Supplier"),
+    )
+    for row_start in range(0, len(field_layout), 2):
+        cols = st.columns(2, gap="medium")
+        for col, (field_name, label) in zip(cols, field_layout[row_start:row_start + 2]):
+            with col:
+                _editable_field_card(result, field_name, label)
+
+
 def _editable_field_card(result: dict[str, Any], field_name: str, label: str) -> None:
     fields = result.setdefault("fields", {})
     document_id = result.get("persistent_document_id") or result.get("id", "document")
     with st.container(border=True):
-        st.caption(label)
+        st.markdown(f"**{label}**")
         updated_value = st.text_input(
             label,
             value="" if fields.get(field_name) is None else str(fields.get(field_name)),
             key=f"{document_id}_{field_name}",
             label_visibility="collapsed",
+            placeholder=f"Enter {label.lower()}...",
         )
         fields[field_name] = updated_value or None
 
 
 def _badge(value: str) -> None:
-    st.markdown(
-        f"<span style='display:inline-block;padding:0.2rem 0.55rem;border-radius:0.35rem;"
-        f"background:#eef2ff;color:#1f2937;font-weight:600;font-size:0.9rem;'>{value}</span>",
-        unsafe_allow_html=True,
-    )
+    st.markdown(f'<span class="idp-badge idp-badge-neutral">{_html_escape(value)}</span>', unsafe_allow_html=True)
 
 
 def _status_badge(value: str, status: str) -> None:
-    background, color = _status_colors(status)
-    st.markdown(
-        f"<span style='display:inline-block;padding:0.2rem 0.55rem;border-radius:0.35rem;"
-        f"background:{background};color:{color};font-weight:600;font-size:0.9rem;'>{value}</span>",
-        unsafe_allow_html=True,
-    )
+    badge_class = _status_badge_class(status)
+    st.markdown(f'<span class="idp-badge {badge_class}">{_html_escape(value)}</span>', unsafe_allow_html=True)
 
 
-def _status_colors(status: str) -> tuple[str, str]:
+def _status_badge_class(status: str) -> str:
     normalized = str(status).lower()
     if normalized in {"processed", "pass"}:
-        return "#dcfce7", "#166534"
+        return "idp-badge-success"
     if normalized in {"needs_review", "fail"}:
-        return "#fee2e2", "#991b1b"
-    return "#fef3c7", "#92400e"
+        return "idp-badge-danger"
+    return "idp-badge-warning"
 
 
 def _pipeline_status_label(status: str) -> str:
@@ -630,6 +1098,12 @@ def _component_status(component: Any) -> str:
     if isinstance(component, dict):
         return str(component.get("status", "unknown")).replace("_", " ").title()
     return "Unknown"
+
+
+def _component_status_key(component: Any) -> str:
+    if isinstance(component, dict):
+        return str(component.get("status", "unknown")).lower()
+    return "unknown"
 
 
 def _classification_label(result: dict[str, Any]) -> str:
@@ -712,6 +1186,112 @@ def _highlight_query(text: str, query: str) -> str:
             flags=re.IGNORECASE,
         )
     return highlighted
+
+
+def render_document_preview(file_path: str | Path | None, filename: str | None = None) -> None:
+    with st.container(border=True):
+        st.markdown("### Original document preview")
+        if file_path in (None, ""):
+            st.info("Original file preview is unavailable for this record.")
+            return
+
+        path = Path(str(file_path))
+        if not path.exists() or not path.is_file():
+            st.info("Original file preview is unavailable for this record.")
+            return
+
+        suffix = path.suffix.lower()
+        if suffix == ".pdf":
+            render_pdf_preview(path)
+        elif suffix in {".png", ".jpg", ".jpeg"}:
+            render_image_preview(path, filename or path.name)
+        else:
+            st.info("Original file preview is unavailable for this record.")
+
+
+def render_pdf_preview(file_path: Path) -> None:
+    try:
+        encoded = base64.b64encode(file_path.read_bytes()).decode("ascii")
+    except OSError:
+        st.info("Original file preview is unavailable for this record.")
+        return
+
+    iframe = (
+        '<iframe class="idp-pdf-preview" '
+        f'src="data:application/pdf;base64,{encoded}#toolbar=1&navpanes=0"></iframe>'
+    )
+    st.markdown(iframe, unsafe_allow_html=True)
+    st.caption("If the browser cannot preview this PDF, open the stored file directly from the local uploads folder.")
+
+
+def render_image_preview(file_path: Path, filename: str | None = None) -> None:
+    try:
+        st.image(str(file_path), caption=filename, use_container_width=True)
+    except Exception:
+        st.info("Original file preview is unavailable for this record.")
+
+
+def _page_header(title: str, description: str) -> None:
+    html_value = (
+        '<div class="idp-page-header">'
+        '<span class="idp-eyebrow">IDP Dashboard</span>'
+        f'<h1>{_html_escape(title)}</h1>'
+        f'<p>{_html_escape(description)}</p>'
+        '</div>'
+    )
+    st.markdown(html_value, unsafe_allow_html=True)
+
+
+def _empty_state(title: str, description: str) -> None:
+    html_value = (
+        '<div class="idp-empty-state">'
+        '<span class="empty-icon">No records</span>'
+        f'<h3>{_html_escape(title)}</h3>'
+        f'<p>{_html_escape(description)}</p>'
+        '</div>'
+    )
+    st.markdown(html_value, unsafe_allow_html=True)
+
+
+def _info_card(title: str, description: str) -> None:
+    html_value = (
+        '<div class="idp-info-card">'
+        f'<h3>{_html_escape(title)}</h3>'
+        f'<p>{_html_escape(description)}</p>'
+        '</div>'
+    )
+    st.markdown(html_value, unsafe_allow_html=True)
+
+
+def _metric_grid(metrics: list[tuple[str, str, str]], wide: bool = False) -> None:
+    cards = []
+    for label, value, caption in metrics:
+        cards.append(
+            '<div class="idp-metric-card">'
+            f'<strong>{_html_escape(label)}</strong>'
+            f'<span class="value">{_html_escape(value)}</span>'
+            f'<span>{_html_escape(caption)}</span>'
+            '</div>'
+        )
+    grid_class = 'idp-metric-grid wide' if wide else 'idp-metric-grid'
+    st.markdown(f'<div class="{grid_class}">{"".join(cards)}</div>', unsafe_allow_html=True)
+
+
+def _status_card_grid(statuses: list[tuple[str, str, str]]) -> None:
+    cards = []
+    for label, value, status in statuses:
+        badge_class = _status_badge_class(status)
+        cards.append(
+            '<div class="idp-status-card">'
+            f'<strong>{_html_escape(label)}</strong>'
+            f'<span class="idp-badge {badge_class}">{_html_escape(value)}</span>'
+            '</div>'
+        )
+    st.markdown(f'<div class="idp-status-grid">{"".join(cards)}</div>', unsafe_allow_html=True)
+
+
+def _html_escape(value: Any) -> str:
+    return html.escape(str(value), quote=True)
 
 
 if __name__ == "__main__":
