@@ -132,3 +132,13 @@ This is optional because the current pipeline is already implemented with
 PaddleOCR and because the core remaining dissertation feedback is centered on
 retrieval metrics, latency, layout-aware comparison, and final real-environment
 reruns.
+## Phase 18: Hybrid Search Reliability Update (17B.4)
+
+The search pipeline has been augmented with a deterministic structured query parser to correctly handle numeric inequalities, ranges, exact identifiers, and document type constraints that pure embedding similarity fails to enforce reliably.
+
+Final retrieval evaluation should now distinguish between:
+- semantic-only queries (natural language semantic intent)
+- structured/numeric queries (numeric amount constraint, document type, exact identifier, supplier/entity)
+- mixed structured + semantic queries (mixed constraint + semantic intent)
+
+Do not claim improved performance until measured. The existing semantic evaluation framework (evaluation/search_eval.py) must be extended or supplemented to capture this distinction. The ability to evaluate the original semantic retrieval mode (A: semantic-only vs B: hybrid structured + semantic) should be preserved to strengthen RQ2.

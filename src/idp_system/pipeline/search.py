@@ -62,33 +62,142 @@ class SemanticSearchService:
         self.index.add(embeddings)
         self.documents.extend(documents)
 
-    def search(self, query: str, k: int = 5) -> list[dict[str, object]]:
+    def search(self, query: str, k: int = 5, min_score: float = 0.0) -> list[dict[str, object]]:
         """Return top-k semantically similar in-memory documents."""
         if not query or not query.strip():
             raise ValueError("query is required")
         if self.index is None or not self.documents:
             return []
 
-        query_embedding = np.array([self.embedding_service.embed(query)], dtype="float32")
-        scores, indices = self.index.search(query_embedding, min(k, len(self.documents)))
+        from .query_parser import parse_query, parse_amount
 
-        results: list[dict[str, object]] = []
+        known_suppliers = []
+        for doc in self.documents:
+            fields = doc.get("fields") or {}
+            sup = fields.get("supplier")
+            if sup and isinstance(sup, str):
+                known_suppliers.append(sup)
+
+        parsed_query = parse_query(query, known_suppliers=list(set(known_suppliers)))
+
+        has_structured_constraints = (
+            parsed_query.document_type is not None or
+            parsed_query.supplier is not None or
+            parsed_query.document_number is not None or
+            parsed_query.amount_eq is not None or
+            parsed_query.amount_lt is not None or
+            parsed_query.amount_lte is not None or
+            parsed_query.amount_gt is not None or
+            parsed_query.amount_gte is not None or
+            parsed_query.amount_min is not None or
+            parsed_query.amount_max is not None
+        )
+
+        candidate_indices = []
+        for i, doc in enumerate(self.documents):
+            passed = True
+            if parsed_query.document_type and doc.get("type") != parsed_query.document_type:
+                passed = False
+
+            if passed and parsed_query.supplier:
+                from .query_parser import normalize_supplier_name
+                fields = doc.get("fields") or {}
+                doc_supplier = str(fields.get("supplier", ""))
+
+                norm_query = normalize_supplier_name(parsed_query.supplier)
+                norm_doc = normalize_supplier_name(doc_supplier)
+
+                if norm_query != norm_doc:
+                    passed = False
+
+            if passed and parsed_query.document_number:
+                fields = doc.get("fields") or {}
+                doc_inv = str(fields.get("invoice_number", "")).lower()
+                doc_num_query = parsed_query.document_number.lower()
+                if doc_num_query not in doc_inv:
+                    passed = False
+
+            if passed and (parsed_query.amount_eq is not None or
+                           parsed_query.amount_lt is not None or
+                           parsed_query.amount_lte is not None or
+                           parsed_query.amount_gt is not None or
+                           parsed_query.amount_gte is not None or
+                           parsed_query.amount_min is not None):
+                fields = doc.get("fields") or {}
+                doc_amt_str = str(fields.get("amount", ""))
+                doc_amt = parse_amount(doc_amt_str)
+                if doc_amt is None:
+                    passed = False
+                else:
+                    if parsed_query.amount_eq is not None and doc_amt != parsed_query.amount_eq:
+                        passed = False
+                    if parsed_query.amount_lt is not None and doc_amt >= parsed_query.amount_lt:
+                        passed = False
+                    if parsed_query.amount_lte is not None and doc_amt > parsed_query.amount_lte:
+                        passed = False
+                    if parsed_query.amount_gt is not None and doc_amt <= parsed_query.amount_gt:
+                        passed = False
+                    if parsed_query.amount_gte is not None and doc_amt < parsed_query.amount_gte:
+                        passed = False
+                    if parsed_query.amount_min is not None and (doc_amt < parsed_query.amount_min or doc_amt > parsed_query.amount_max):
+                        passed = False
+
+            if passed:
+                candidate_indices.append(i)
+
+        if has_structured_constraints and not candidate_indices:
+            return []
+
+        if not candidate_indices:
+            candidate_indices = list(range(len(self.documents)))
+
+        semantic_text = parsed_query.semantic_text
+        if not semantic_text:
+            results = []
+            for idx in candidate_indices[:k]:
+                doc = self.documents[idx]
+                results.append(
+                    {
+                        "id": str(doc.get("id", idx)),
+                        "text": str(doc.get("text", "")),
+                        "score": 1.0,
+                        "metadata": {
+                            key: value
+                            for key, value in doc.items()
+                            if key not in {"id", "text"}
+                        },
+                    }
+                )
+            return results
+
+        query_embedding = np.array([self.embedding_service.embed(semantic_text)], dtype="float32")
+        scores, indices = self.index.search(query_embedding, len(self.documents))
+
+        candidate_set = set(candidate_indices)
+        results = []
         for score, index in zip(scores[0], indices[0]):
-            if index < 0:
+            if index < 0 or index not in candidate_set:
                 continue
-            document = self.documents[int(index)]
+
+            if not has_structured_constraints and score < min_score:
+                continue
+
+            doc = self.documents[int(index)]
             results.append(
                 {
-                    "id": str(document.get("id", index)),
-                    "text": str(document.get("text", "")),
+                    "id": str(doc.get("id", index)),
+                    "text": str(doc.get("text", "")),
                     "score": float(score),
                     "metadata": {
                         key: value
-                        for key, value in document.items()
+                        for key, value in doc.items()
                         if key not in {"id", "text"}
                     },
                 }
             )
+            if len(results) >= k:
+                break
+
         return results
 
 

@@ -24,7 +24,7 @@ Completed pipeline and evaluation features:
 - Advisory validation boundary for OCR quality, classification confidence, and
   extracted fields.
 - Validation confidence matrix and warning summary in the Streamlit UI.
-- Semantic search with `sentence-transformers/all-MiniLM-L6-v2` embeddings and FAISS.
+- Hybrid semantic search combining deterministic structured-query filtering (amounts, dates, suppliers) with `sentence-transformers/all-MiniLM-L6-v2` embeddings and FAISS.
 - Semantic search IR evaluation with Precision@K, Recall@K, MRR@K, and NDCG@K.
 - CPU latency benchmark framework for stage-level runtime measurement.
 - Layout-aware classification comparison using lightweight text-structure
@@ -254,8 +254,9 @@ temporary uploads outside version control.
 ## Current Limitations
 
 - Authentication is implemented as a local SQLite-backed academic prototype.
-- Processed records persist in SQLite, but semantic search embeddings are rebuilt
-  in memory from persisted documents after app restart.
+- Semantic search embeddings are still in-memory and rebuilt from persisted
+  documents after app restart.
+- Hybrid search handles strict numeric inequalities reliably, but pure semantic queries without numeric operators rely on a conservative zero-score threshold.
 - Validation is advisory only; it flags low-confidence or suspicious outputs but
   does not block downstream processing.
 - The trained classifier reports perfect validation accuracy on the current

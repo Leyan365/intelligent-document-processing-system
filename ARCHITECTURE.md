@@ -181,3 +181,16 @@ Current pipeline statuses are:
   the schema remains portable to MySQL.
 - In-memory search: Semantic search vectors are rebuilt from persisted document
   records for the signed-in user instead of being stored permanently.
+
+## Hybrid Semantic Search
+
+The search layer (src/idp_system/pipeline/search.py) implements a hybrid architecture combining deterministic structured filtering with semantic embedding ranking.
+This is implemented to handle hard constraints (e.g., amount inequalities, document numbers, exact supplier names) that pure embedding similarity cannot accurately enforce.
+
+Flow:
+1. query_parser.py extracts document types, amount operators (>, <, =, ranges), identifiers, and supplier names from the natural language query.
+2. The remaining text is treated as semantic_text.
+3. In-memory SemanticSearchService.documents are filtered against the parsed structured constraints. If a constraint is not met, the document is excluded.
+4. The semantic text is embedded via sentence-transformers and searched via FAISS against the filtered candidates.
+5. If structured constraints are used but no documents match, the system correctly returns no results rather than violating the constraint with a semantically close fallback.
+6. A conservative relevance threshold is supported for pure semantic queries.

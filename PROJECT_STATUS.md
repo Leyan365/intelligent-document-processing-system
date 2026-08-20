@@ -131,3 +131,8 @@ latency benchmarking, and layout-aware classification comparison.
 - Dataset and generalization improvements if feasible.
 - Final screenshots and reproducibility checks.
 - Dissertation/report writing and final presentation preparation.
+
+## Phase 18: Hybrid Search Reliability Update (17B.4)
+- **Status:** Complete
+- **Feature:** Deterministic structured query parsing and candidate filtering before semantic ranking.
+- **Details:** Resolves issue where pure embeddings fail on numeric inequality, ranges, and hard constraints. Added query_parser.py which extracts conditions like elow 3000, invoice, or exact identifiers, falling back to FAISS for semantic remaining text. Zero-match correctly returns no results. Added conservative relevance threshold support.
