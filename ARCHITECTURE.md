@@ -188,9 +188,10 @@ The search layer (src/idp_system/pipeline/search.py) implements a hybrid archite
 This is implemented to handle hard constraints (e.g., amount inequalities, document numbers, exact supplier names) that pure embedding similarity cannot accurately enforce.
 
 Flow:
-1. query_parser.py extracts document types, amount operators (>, <, =, ranges), identifiers, and supplier names from the natural language query.
+1. `query_parser.py` extracts document types, amount operators (>, <, =, ranges), identifiers, and supplier names from the natural language query.
 2. The remaining text is treated as semantic_text.
-3. In-memory SemanticSearchService.documents are filtered against the parsed structured constraints. If a constraint is not met, the document is excluded.
-4. The semantic text is embedded via sentence-transformers and searched via FAISS against the filtered candidates.
-5. If structured constraints are used but no documents match, the system correctly returns no results rather than violating the constraint with a semantically close fallback.
-6. A conservative relevance threshold is supported for pure semantic queries.
+3. In-memory `SemanticSearchService.documents` are filtered against the parsed structured constraints.
+4. Candidate documents are evaluated for exact normalized occurrences of query terms (e.g., `"Ansell"`) across critical entity fields: document numbers (Tier 1), supplier metadata (Tier 2), original filename boundaries (Tier 3), and extracted OCR/native text bodies (Tier 4). Exact matches rank above dense embeddings.
+5. For a name-plus-amount query, an entity that occurs anywhere in the corpus must also occur in the amount-qualified candidates; otherwise the system returns no results rather than an unrelated semantic fallback.
+6. When the locally cached sentence-transformer model is available, FAISS ranks the remaining semantic candidates (Tier 5). If it is unavailable, the search layer provides exact and keyword fallback results without waiting for network retries.
+7. If structured constraints are used but no documents match, the system correctly returns no results rather than violating the constraint with a semantically close fallback. A conservative relevance threshold is supported for pure semantic queries.
