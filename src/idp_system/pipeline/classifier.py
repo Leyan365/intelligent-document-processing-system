@@ -226,7 +226,13 @@ class DocumentClassifier:
     """Thin object-oriented wrapper around the local classifier pipeline."""
 
     def __init__(self, model: Pipeline | None = None) -> None:
-        self.model = model or load_default_model()
+        global _cached_model
+        if model is not None:
+            self.model = model
+        else:
+            if _cached_model is None:
+                _cached_model = load_default_model()
+            self.model = _cached_model
 
     def classify(self, text: str) -> str:
         return predict_document_type(text, self.model)

@@ -485,7 +485,7 @@ def apply_custom_styles() -> None:
 
 def _ensure_session_state() -> None:
     if "system" not in st.session_state:
-        st.session_state.system = IDPSystem()
+        st.session_state.system = None
     if "processed_history" not in st.session_state:
         st.session_state.processed_history = []
     if "authenticated" not in st.session_state:
@@ -646,6 +646,8 @@ def _ensure_active_user_state() -> None:
     user_id = st.session_state.user_id
     if user_id is not None and st.session_state.active_user_id != user_id:
         _reset_document_session_state(user_id, clear_navigation=True)
+    if user_id is not None and st.session_state.system is None:
+        st.session_state.system = IDPSystem()
 
 
 def _reset_document_session_state(
@@ -653,7 +655,7 @@ def _reset_document_session_state(
     *,
     clear_navigation: bool = False,
 ) -> None:
-    st.session_state.system = IDPSystem()
+    st.session_state.system = None
     st.session_state.processed_history = []
     st.session_state.current_document_id = None
     st.session_state.current_result = None
@@ -804,7 +806,7 @@ def _logout() -> None:
     st.session_state.auth_session_token = None
     st.session_state.auth_restore_attempted = True
     _reset_document_session_state(None, clear_navigation=True)
-    st.stop()
+    st.rerun()
 
 
 def render_upload_page() -> None:
@@ -1007,6 +1009,13 @@ def render_search_page() -> None:
     )
     with st.spinner("Building search index..."):
         _ensure_search_index_for_current_user()
+
+    search_service = st.session_state.system.search_service
+    if not search_service.semantic_search_available:
+        st.info(
+            "Semantic model is unavailable locally. Showing fast exact and keyword matches instead. "
+            "Download the MiniLM model once while online to re-enable semantic ranking."
+        )
 
     with st.container(border=True):
         st.markdown("### 🔎 Search your documents")

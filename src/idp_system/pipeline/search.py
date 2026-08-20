@@ -5,7 +5,7 @@ from typing import Any
 
 import numpy as np
 
-from .embeddings import EmbeddingService
+from .embeddings import EmbeddingModelUnavailableError, EmbeddingService
 
 
 EXAMPLE_DOCUMENTS = [
@@ -42,6 +42,8 @@ class SemanticSearchService:
         self.documents: list[dict[str, object]] = []
         self.index: Any | None = None
         self.dimension: int | None = None
+        self.semantic_search_available = True
+        self.semantic_search_error: str | None = None
 
     def add_documents(self, documents: list[dict[str, object]]) -> None:
         """Embed and add documents shaped as {'id': ..., 'text': ..., ...}."""
@@ -49,7 +51,16 @@ class SemanticSearchService:
             return
 
         texts = [str(document.get("text", "")) for document in documents]
-        embeddings = np.array(self.embedding_service.embed_many(texts), dtype="float32")
+        try:
+            embeddings = np.array(self.embedding_service.embed_many(texts), dtype="float32")
+        except EmbeddingModelUnavailableError as exc:
+            self.documents.extend(documents)
+            self.index = None
+            self.dimension = None
+            self.semantic_search_available = False
+            self.semantic_search_error = str(exc)
+            return
+
         if embeddings.ndim != 2 or embeddings.shape[0] != len(documents):
             raise ValueError("embedding service returned invalid embedding shape")
 
@@ -66,7 +77,7 @@ class SemanticSearchService:
         """Return top-k semantically similar in-memory documents."""
         if not query or not query.strip():
             raise ValueError("query is required")
-        if self.index is None or not self.documents:
+        if not self.documents:
             return []
 
         from .query_parser import parse_query, parse_amount
@@ -80,10 +91,7 @@ class SemanticSearchService:
 
         parsed_query = parse_query(query, known_suppliers=list(set(known_suppliers)))
 
-        has_structured_constraints = (
-            parsed_query.document_type is not None or
-            parsed_query.supplier is not None or
-            parsed_query.document_number is not None or
+        has_amount_constraint = (
             parsed_query.amount_eq is not None or
             parsed_query.amount_lt is not None or
             parsed_query.amount_lte is not None or
@@ -91,6 +99,13 @@ class SemanticSearchService:
             parsed_query.amount_gte is not None or
             parsed_query.amount_min is not None or
             parsed_query.amount_max is not None
+        )
+
+        has_structured_constraints = (
+            parsed_query.document_type is not None or
+            parsed_query.supplier is not None or
+            parsed_query.document_number is not None or
+            has_amount_constraint
         )
 
         candidate_indices = []
@@ -117,12 +132,7 @@ class SemanticSearchService:
                 if doc_num_query not in doc_inv:
                     passed = False
 
-            if passed and (parsed_query.amount_eq is not None or
-                           parsed_query.amount_lt is not None or
-                           parsed_query.amount_lte is not None or
-                           parsed_query.amount_gt is not None or
-                           parsed_query.amount_gte is not None or
-                           parsed_query.amount_min is not None):
+            if passed and has_amount_constraint:
                 fields = doc.get("fields") or {}
                 doc_amt_str = str(fields.get("amount", ""))
                 doc_amt = parse_amount(doc_amt_str)
@@ -170,24 +180,96 @@ class SemanticSearchService:
                 )
             return results
 
+        def _compute_lexical_tier(doc: dict, query_text: str) -> int:
+            from .query_parser import normalize_supplier_name
+            import re
+            q_norm = normalize_supplier_name(query_text)
+            if not q_norm:
+                return 5
+
+            fields = doc.get("fields") or {}
+
+            # Tier 1: exact document number
+            doc_num = normalize_supplier_name(str(fields.get("invoice_number", "")))
+            if doc_num and doc_num == q_norm:
+                return 1
+
+            # Tier 2: exact supplier
+            doc_sup = normalize_supplier_name(str(fields.get("supplier", "")))
+            if doc_sup and doc_sup == q_norm:
+                return 2
+
+            # Boundary match pattern
+            pattern = r'\b' + re.escape(q_norm) + r'\b'
+
+            # Tier 3: filename
+            filename = normalize_supplier_name(str(doc.get("filename") or ""))
+            if filename and re.search(pattern, filename):
+                return 3
+
+            # Tier 4: text
+            text = normalize_supplier_name(str(doc.get("text") or ""))
+            if text and re.search(pattern, text):
+                return 4
+
+            return 5
+
+        # A name-plus-amount query is conjunctive: if the remaining query text
+        # exactly identifies a document anywhere in the corpus, do not replace
+        # that entity condition with an unrelated semantic result after the
+        # amount filter has been applied.
+        requires_exact_entity_match = (
+            has_amount_constraint
+            and bool(semantic_text)
+            and any(_compute_lexical_tier(doc, semantic_text) < 5 for doc in self.documents)
+        )
+        if requires_exact_entity_match and not any(
+            _compute_lexical_tier(self.documents[index], semantic_text) < 5
+            for index in candidate_indices
+        ):
+            return []
+
+        if self.index is None:
+            return _lexical_search_results(
+                self.documents,
+                candidate_indices,
+                semantic_text,
+                k,
+                _compute_lexical_tier,
+                requires_exact_entity_match,
+            )
+
         query_embedding = np.array([self.embedding_service.embed(semantic_text)], dtype="float32")
         scores, indices = self.index.search(query_embedding, len(self.documents))
 
         candidate_set = set(candidate_indices)
-        results = []
+
+        scored_candidates = []
         for score, index in zip(scores[0], indices[0]):
             if index < 0 or index not in candidate_set:
                 continue
 
-            if not has_structured_constraints and score < min_score:
+            doc = self.documents[int(index)]
+            tier = _compute_lexical_tier(doc, semantic_text)
+
+            if requires_exact_entity_match and tier == 5:
                 continue
 
-            doc = self.documents[int(index)]
+            if tier == 5 and not has_structured_constraints and score < min_score:
+                continue
+
+            scored_candidates.append((tier, float(score), doc, int(index)))
+
+        scored_candidates.sort(key=lambda x: (x[0], -x[1]))
+
+        results = []
+        for tier, score, doc, index in scored_candidates[:k]:
             results.append(
                 {
                     "id": str(doc.get("id", index)),
                     "text": str(doc.get("text", "")),
-                    "score": float(score),
+                    "score": score,
+                    "lexical_tier": tier,
                     "metadata": {
                         key: value
                         for key, value in doc.items()
@@ -195,8 +277,6 @@ class SemanticSearchService:
                     },
                 }
             )
-            if len(results) >= k:
-                break
 
         return results
 
@@ -217,6 +297,54 @@ def _create_faiss_index(dimension: int) -> Any:
         ) from exc
 
     return faiss.IndexFlatIP(dimension)
+
+
+def _lexical_search_results(
+    documents: list[dict[str, object]],
+    candidate_indices: list[int],
+    query_text: str,
+    k: int,
+    compute_lexical_tier: Any,
+    requires_exact_entity_match: bool,
+) -> list[dict[str, object]]:
+    """Provide fast local search while the optional embedding model is unavailable."""
+    from .query_parser import normalize_supplier_name
+
+    query_terms = set(normalize_supplier_name(query_text).split())
+    ranked: list[tuple[int, float, dict[str, object], int]] = []
+    for index in candidate_indices:
+        doc = documents[index]
+        tier = compute_lexical_tier(doc, query_text)
+        if requires_exact_entity_match and tier == 5:
+            continue
+
+        fields = doc.get("fields") or {}
+        searchable_text = " ".join(
+            (
+                str(doc.get("filename") or ""),
+                str(fields.get("supplier") or ""),
+                str(doc.get("text") or ""),
+            )
+        )
+        terms = set(normalize_supplier_name(searchable_text).split())
+        score = len(query_terms & terms) / len(query_terms) if query_terms else 0.0
+        ranked.append((tier, score, doc, index))
+
+    ranked.sort(key=lambda item: (item[0], -item[1]))
+    return [
+        {
+            "id": str(doc.get("id", index)),
+            "text": str(doc.get("text", "")),
+            "score": score,
+            "lexical_tier": tier,
+            "metadata": {
+                key: value
+                for key, value in doc.items()
+                if key not in {"id", "text"}
+            },
+        }
+        for tier, score, doc, index in ranked[:k]
+    ]
 
 
 if __name__ == "__main__":

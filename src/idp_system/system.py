@@ -22,7 +22,7 @@ class IDPSystem:
         search_service: SemanticSearchService | None = None,
     ) -> None:
         self.loader = loader or DocumentLoaderRouter()
-        self.classifier = classifier or DocumentClassifier()
+        self.classifier = classifier
         self.extractor = extractor or InformationExtractor()
         self.search_service = search_service or SemanticSearchService()
         self.documents: dict[str, Document] = {}
@@ -41,6 +41,8 @@ class IDPSystem:
     def process_document(self, source: str | Path) -> dict[str, object]:
         """Load, classify, extract fields, store, and index one document."""
         document = self.load_document(source)
+        if self.classifier is None:
+            self.classifier = DocumentClassifier()
         classification = _classify_document(self.classifier, document.content)
         document_type = str(classification["label"])
         fields = self.extractor.extract(document.content, document_type)

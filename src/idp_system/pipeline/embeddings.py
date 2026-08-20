@@ -1,10 +1,16 @@
 """Local sentence-transformers embedding generation."""
 
+import os
 from functools import lru_cache
 from typing import Any
 
 
 DEFAULT_EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
+ALLOW_REMOTE_MODEL_DOWNLOAD_ENV = "IDP_ALLOW_REMOTE_MODEL_DOWNLOAD"
+
+
+class EmbeddingModelUnavailableError(RuntimeError):
+    """Raised when the local semantic-search model is not available."""
 
 
 def generate_embedding(text: str, model_name: str = DEFAULT_EMBEDDING_MODEL) -> list[float]:
@@ -36,6 +42,17 @@ class EmbeddingService:
 
 @lru_cache(maxsize=2)
 def _load_model(model_name: str) -> Any:
+    allow_remote_download = os.getenv(ALLOW_REMOTE_MODEL_DOWNLOAD_ENV, "").lower() in {
+        "1",
+        "true",
+        "yes",
+    }
+    if not allow_remote_download:
+        # These flags must be set before importing sentence-transformers so
+        # Transformers does not probe for optional files over the network.
+        os.environ["HF_HUB_OFFLINE"] = "1"
+        os.environ["TRANSFORMERS_OFFLINE"] = "1"
+
     try:
         from sentence_transformers import SentenceTransformer
     except ImportError as exc:
@@ -44,7 +61,15 @@ def _load_model(model_name: str) -> Any:
             "Install package: sentence-transformers"
         ) from exc
 
-    return SentenceTransformer(model_name)
+    try:
+        # Search is a local feature. Do not block the Streamlit UI while the
+        # Hugging Face client retries an unavailable network connection.
+        return SentenceTransformer(model_name, local_files_only=not allow_remote_download)
+    except Exception as exc:
+        raise EmbeddingModelUnavailableError(
+            f"The semantic-search model '{model_name}' is not cached locally. "
+            "Download it once while online to enable semantic search."
+        ) from exc
 
 
 if __name__ == "__main__":
