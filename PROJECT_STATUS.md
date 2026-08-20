@@ -1,8 +1,8 @@
 # Project Status
 
-## Current Status After Phase 16
+## Current Status After Phase 17B
 
-The core IDP pipeline is complete. Phase 15 added local Streamlit authentication, and Phase 16 added persistent SQLite document storage with per-user duplicate upload protection. The remaining work focuses on improvement/tuning, UI polish, final real-environment evaluation reruns, screenshots, dissertation/report writing, and presentation preparation.
+The core IDP pipeline and user interface are complete. Phase 15 added local Streamlit authentication, Phase 16 added persistent SQLite document storage with per-user duplicate upload protection, and Phase 17B completed Streamlit UI polish, persistent session cookie management, and refined validation/search styling. The remaining work focuses on final real-environment evaluation reruns, screenshots, dissertation/report writing, and presentation preparation.
 
 The current system can process invoices, receipts, and purchase orders through
 the local pipeline:
@@ -48,6 +48,8 @@ latency benchmarking, and layout-aware classification comparison.
   management.
 - Phase 16: Added persistent SQLite document storage and per-user duplicate
   upload protection.
+- Phase 17B: Polished Streamlit UI, persistent session cookies, and interactive
+  review workflows.
 
 ## Latest Working Behavior
 
@@ -82,6 +84,8 @@ latency benchmarking, and layout-aware classification comparison.
 - 379d0d9 Phase 14: Add layout-aware classification comparison.
 - 4cdb5b3 Phase 15: Add local authentication and fix PDF upload handling.
 - 54402ba Phase 16: Add persistent document storage and duplicate protection.
+- 4b180a7 docs: update project status after phase 16.
+- ad75490 Phase 17B: Polish Streamlit UI.
 
 ## Known Limitations
 
@@ -103,20 +107,27 @@ latency benchmarking, and layout-aware classification comparison.
 
 ## Changes From Original Proposal
 
-- The Flask backend was deferred in favor of a Streamlit-first implementation
-  so the ML pipeline, validation, and evaluation work could be completed and
-  demonstrated quickly.
-- Authentication and database integration were initially deferred during ML
-  pipeline development, but they are now required before final submission.
-- MySQL was proposed originally. SQLite may be used for local prototype
-  persistence if acceptable, while keeping the schema portable to MySQL.
-- BGE-M3 was reduced to Sentence-BERT/MiniLM-style local embeddings for
-  feasibility.
+- The separate Flask backend was consolidated into a Streamlit-first integrated
+  application to simplify local deployment and provide direct state management
+  for in-memory FAISS indexing.
+- Authentication and database persistence were initially deferred during core ML
+  pipeline prototyping, and were subsequently implemented in Phase 15 (auth)
+  and Phase 16 (SQLite persistence and duplicate protection), followed by
+  Phase 17B session and UI polish.
+- MySQL was proposed originally; SQLite is used for local academic evaluation
+  and self-contained reproducibility, while maintaining a portable relational
+  schema structure.
+- BGE-M3 was replaced with `sentence-transformers/all-MiniLM-L6-v2` for
+  lightweight, CPU-friendly embedding generation on standard computing resources.
 - Additional academic evaluation phases were added beyond the original
-  proposal: validation matrix, MRR/NDCG evaluation, CPU latency benchmark, and
-  layout-aware classification comparison.
+  proposal: advisory validation boundary, MRR/NDCG retrieval evaluation,
+  stage-level CPU latency benchmarking, and layout-aware classification comparison.
 
-## Next Phases
+## Remaining Technical / Evaluation Work
 
-- Phase 17: Final real-environment evaluation reruns and screenshots.
-- Phase 18: Dissertation/report writing and final presentation preparation.
+- Development tuning and quality improvements where academically justified.
+- Final production-environment semantic-search evaluation reruns with real embeddings.
+- Final real-document latency benchmark measurements in the full dependency environment.
+- Dataset and generalization improvements if feasible.
+- Final screenshots and reproducibility checks.
+- Dissertation/report writing and final presentation preparation.

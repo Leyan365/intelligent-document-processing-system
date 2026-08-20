@@ -6,9 +6,7 @@ classifies document type, extracts key fields, validates pipeline reliability,
 indexes processed documents for semantic search, and displays results through a
 Streamlit interface.
 
-The core IDP and evaluation pipeline is complete through Phase 16. The remaining
-work focuses on final real-environment evaluation reruns, screenshots,
-dissertation/report writing, and presentation preparation.
+The core IDP pipeline, authentication, persistence, semantic search, evaluation framework, and polished review UI are implemented. The remaining work focuses on final real-environment evaluation reruns, screenshots, dissertation/report writing, and presentation preparation.
 
 ## Current Features
 
@@ -26,7 +24,7 @@ Completed pipeline and evaluation features:
 - Advisory validation boundary for OCR quality, classification confidence, and
   extracted fields.
 - Validation confidence matrix and warning summary in the Streamlit UI.
-- Semantic search with sentence-transformers embeddings and FAISS.
+- Semantic search with `sentence-transformers/all-MiniLM-L6-v2` embeddings and FAISS.
 - Semantic search IR evaluation with Precision@K, Recall@K, MRR@K, and NDCG@K.
 - CPU latency benchmark framework for stage-level runtime measurement.
 - Layout-aware classification comparison using lightweight text-structure
@@ -34,11 +32,14 @@ Completed pipeline and evaluation features:
 - Local Streamlit application for upload, processing, result review, search,
   and processing history.
 
-Completed application features:
+Completed application and persistence features:
 
-- Authentication/login and user session management.
-- Persistent SQLite storage for processed document records.
+- Local user registration, login, and salted PBKDF2-HMAC-SHA256 password hashing.
+- Database-backed opaque authentication sessions and persistent browser cookies.
+- Persistent SQLite storage for processed document records and validation results.
 - Per-user duplicate upload protection using SHA-256 file hashing.
+- Document preview, original-file download, and persistent document review workflow.
+- Per-user document history and isolated search index reconstruction.
 
 ## Pipeline Summary
 
@@ -89,6 +90,7 @@ src/idp_system/
   pipeline/             extraction, OCR, classification, validation, search
   ui/                   Streamlit application
   database/             SQLite auth and document persistence repositories
+  auth.py               user authentication and session management
   system.py             integrated IDPSystem orchestrator
 
 training/
@@ -118,7 +120,7 @@ needed for the current local pipeline.
 python -m venv venv
 .\venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
-python -m pip install pymupdf paddleocr paddlepaddle opencv-python numpy scikit-learn joblib sentence-transformers faiss-cpu streamlit spacy
+python -m pip install pymupdf paddleocr paddlepaddle opencv-python numpy scikit-learn joblib sentence-transformers faiss-cpu streamlit spacy streamlit-cookies-controller==0.0.4
 ```
 
 There is currently no committed `requirements.txt`, so dependencies are listed
@@ -144,6 +146,22 @@ python -m streamlit run src\idp_system\ui\streamlit_app.py
 The UI supports document upload, processing stage display, extracted field
 review, validation results, semantic search over processed documents, and
 history viewing.
+
+### Persistent Login Security
+
+Persistent login uses a random opaque browser token backed by the local SQLite
+`auth_sessions` table. Only a SHA-256 digest of the token is stored in SQLite;
+the cookie contains no username, email, password, password hash, or user ID.
+Sessions expire after 12 hours by default or after approximately 7 days when
+`Keep me signed in` is selected. Sign out revokes the database session and
+removes the cookie. Cookie options use `SameSite=Lax` and enable `Secure`
+automatically when the app is served over HTTPS.
+
+`streamlit-cookies-controller` is used only because Streamlit 1.55 exposes
+cookies through the read-only `st.context.cookies` API. The component sets
+cookies in the browser and cannot set `HttpOnly`. This is a documented local
+academic-prototype limitation; the cookie therefore remains a strong,
+identity-free opaque token and is never placed in URL query parameters.
 
 ## Useful Local Checks
 
@@ -251,18 +269,27 @@ temporary uploads outside version control.
 
 ## Changes From Original Proposal
 
-- The Flask backend was deferred in favor of a Streamlit-first implementation.
-- Authentication and database integration were initially deferred during ML
-  pipeline development, but they are now required before final submission.
-- MySQL was proposed originally. SQLite may be used for local prototype
-  persistence if acceptable, while keeping the schema portable to MySQL.
-- BGE-M3 was reduced to Sentence-BERT/MiniLM-style local embeddings for
-  feasibility.
-- Additional academic evaluation phases were added beyond the proposal:
-  validation matrix, MRR/NDCG evaluation, CPU latency benchmark, and
-  layout-aware classification comparison.
+- The separate Flask backend was consolidated into a Streamlit-first integrated
+  application to simplify local execution and provide direct state management
+  for in-memory FAISS indexing.
+- Authentication and database persistence were initially deferred during core ML
+  pipeline development, and were subsequently implemented in Phase 15 (auth)
+  and Phase 16 (SQLite persistence and duplicate protection), followed by
+  Phase 17B session and UI polish.
+- MySQL was proposed originally; SQLite is used for local academic evaluation
+  and self-contained reproducibility, while maintaining a portable relational
+  schema structure.
+- BGE-M3 was replaced with `sentence-transformers/all-MiniLM-L6-v2` to provide
+  lightweight, CPU-friendly embedding inference on standard personal computers.
+- Additional academic evaluation frameworks were introduced beyond the original
+  proposal: advisory validation boundary, MRR/NDCG retrieval evaluation,
+  stage-level CPU latency benchmarking, and layout-aware classification comparison.
 
-## Next Planned Phases
+## Remaining Development / Evaluation Work
 
-- Phase 17: final real-environment evaluation reruns and screenshots.
-- Phase 18: dissertation/report writing and final presentation preparation.
+- Development tuning and quality improvements where academically justified.
+- Final production-environment semantic-search evaluation reruns with real embeddings.
+- Final real-document latency benchmark measurements in the full dependency environment.
+- Dataset and generalization improvements if feasible.
+- Final screenshots and reproducibility checks.
+- Dissertation/report writing and final presentation preparation.

@@ -130,8 +130,11 @@ goal of robust document routing for invoices, receipts, and purchase orders.
 
 ## Database Integration Note
 
-The production classifier model remains local and is not retrained as part of
-planned authentication or database work. Database integration should store
-classification outputs, confidence metadata, extracted fields, validation
-results, and document/file-hash metadata. It should not retrain or overwrite the
-local model artifact.
+The production classifier operates independently of the application authentication
+and persistence layer. The database stores classifier outputs (predicted labels,
+confidence scores, and confidence source metadata) along with extracted fields,
+validation results, and file metadata.
+
+Database and authentication operations do not retrain, modify, or overwrite the
+local classifier model artifact (`models/document_classifier.joblib`), which
+remains local.

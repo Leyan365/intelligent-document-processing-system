@@ -60,6 +60,8 @@ layers around the current core pipeline.
   returns top-k semantic search results.
 - `system.py`: Orchestrates loading, classification, field extraction,
   validation, processed-document storage, and semantic indexing.
+- `auth.py`: Provides user authentication, registration, salted PBKDF2 password hashing, and session management.
+- `database/`: Implements SQLite repositories for users, authentication sessions, and persisted document records.
 - `streamlit_app.py`: Provides the upload, result review, validation display,
   semantic search, and history UI.
 - `evaluation/`: Contains evaluation scripts for classification/extraction
@@ -97,14 +99,19 @@ needed.
 
 ## Authentication And Persistence Layer
 
-The application uses local Streamlit authentication and persistent SQLite
-document storage without changing the core IDP model behavior. The SQLite
-schema is kept portable so it can be migrated to MySQL later if required by the
-original proposal or supervisor requirements.
+The application implements a local academic prototype authentication and
+persistent SQLite document storage layer without changing core IDP model behavior.
+User identity is secured using salted PBKDF2-HMAC-SHA256 password hashing (200,000
+iterations), and persistent login is managed via opaque browser session tokens
+whose SHA-256 digests are tracked in the `auth_sessions` table.
+
+The SQLite schema is kept relational and portable so it can be migrated to MySQL
+later if required by external deployment requirements.
 
 Implemented database tables:
 
 - `users`: login identity and password/session metadata.
+- `auth_sessions`: persistent session tokens (SHA-256 digest), expiry timestamps, and revocation status.
 - `documents`: uploaded document metadata, owner, source filename, file hash,
   processing status, timestamps, and storage references.
 - `classifications`: predicted document type, confidence, confidence source,
@@ -113,8 +120,8 @@ Implemented database tables:
   optional normalized field values.
 - `validation_results`: pipeline status, validation score, warning counts, and
   serialized warning details.
-- Search embeddings are not persisted in Phase 16; they are rebuilt in memory
-  from the current user's persisted documents when needed.
+- Search embeddings are not stored permanently in SQLite; they are rebuilt in
+  memory from the current user's persisted document records when needed.
 
 ## Duplicate Upload Protection
 

@@ -108,8 +108,11 @@ control.
 
 ## Database Storage Note
 
-Persistent database storage is planned for processed document records, user
-ownership, extracted outputs, validation results, and duplicate prevention. It
-will not store or commit the raw training datasets. Training data remains under
-`data/` as local-only project material, while the database should track uploaded
-and processed document records through metadata such as SHA-256 file hashes.
+Persistent document records are implemented in SQLite (`data/app/idp_app.db`).
+The database stores uploaded document metadata, user ownership, classification
+outputs, extracted fields, validation results, and SHA-256 file hashes for
+per-user duplicate protection.
+
+The application database does not store or migrate raw training datasets.
+Training datasets remain local-only files under `data/` as development material,
+while the SQLite database tracks runtime document processing records.
