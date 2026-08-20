@@ -6,6 +6,7 @@ import base64
 import html
 import re
 import sys
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
@@ -16,19 +17,42 @@ SRC_DIR = Path(__file__).resolve().parents[2]
 if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
+try:
+    from streamlit_cookies_controller import CookieController
+except ImportError:
+    CookieController = None
+PROJECT_ROOT = SRC_DIR.parent
+
 from idp_system.auth import authenticate_user, initialize_auth_db, register_user
 from idp_system.database.document_repository import (
     compute_file_hash,
+    get_document_by_id_for_user,
     get_document_by_user_and_hash,
     initialize_document_tables,
     list_documents_for_user,
     save_processed_document,
+)
+from idp_system.database.session_repository import (
+    create_auth_session,
+    delete_expired_sessions,
+    get_user_for_session_token,
+    revoke_auth_session,
+    touch_auth_session,
 )
 from idp_system.system import IDPSystem
 
 SUPPORTED_UPLOAD_TYPES = ["pdf", "png", "jpg", "jpeg"]
 UPLOAD_STORAGE_ROOT = Path("data/app/uploads")
 PREVIEW_CHARS = 1000
+AUTH_COOKIE_NAME = "idp_auth_session"
+SHORT_SESSION_HOURS = 12
+REMEMBERED_SESSION_DAYS = 7
+PAGE_SLUGS = {
+    "Upload & Process": "upload",
+    "Search": "search",
+    "Document History": "history",
+}
+SLUG_PAGES = {slug: page for page, slug in PAGE_SLUGS.items()}
 
 
 def main() -> None:
@@ -37,12 +61,15 @@ def main() -> None:
     initialize_auth_db()
     initialize_document_tables()
     _ensure_session_state()
+    _cleanup_expired_auth_sessions_once()
+    _restore_authentication_from_cookie()
 
     if not st.session_state.authenticated:
         render_auth_page()
         return
 
     _ensure_active_user_state()
+    _load_current_document_result()
     page = _render_authenticated_sidebar()
 
     if page == "Upload & Process":
@@ -340,9 +367,16 @@ def apply_custom_styles() -> None:
         .idp-pdf-preview {
             border: 1px solid var(--c-border-soft);
             border-radius: var(--r-card);
-            height: 650px;
             width: 100%;
             background: var(--c-surface-2);
+        }
+        .idp-preview-meta {
+            display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem;
+            margin: 0.25rem 0 0.85rem;
+        }
+        .idp-file-name {
+            color: var(--c-text); font-size: 0.9rem; font-weight: 700;
+            overflow-wrap: anywhere;
         }
 
         /* Empty state */
@@ -466,20 +500,172 @@ def _ensure_session_state() -> None:
         st.session_state.search_index_user_id = None
     if "search_index_document_count" not in st.session_state:
         st.session_state.search_index_document_count = None
+    if "current_document_id" not in st.session_state:
+        st.session_state.current_document_id = _document_id_from_query()
+    if "current_result" not in st.session_state:
+        st.session_state.current_result = None
+    if "active_page" not in st.session_state:
+        st.session_state.active_page = _page_from_query()
+    if "auth_session_token" not in st.session_state:
+        st.session_state.auth_session_token = None
+    if "auth_restore_attempted" not in st.session_state:
+        st.session_state.auth_restore_attempted = False
+    if "expired_sessions_cleaned" not in st.session_state:
+        st.session_state.expired_sessions_cleaned = False
 
+
+def _cleanup_expired_auth_sessions_once() -> None:
+    if st.session_state.expired_sessions_cleaned:
+        return
+    delete_expired_sessions()
+    st.session_state.expired_sessions_cleaned = True
+
+
+def _restore_authentication_from_cookie() -> None:
+    if st.session_state.authenticated or st.session_state.auth_restore_attempted:
+        return
+
+    st.session_state.auth_restore_attempted = True
+    token = _read_auth_cookie()
+    if not token:
+        return
+
+    user = get_user_for_session_token(token)
+    if user is None:
+        _remove_auth_cookie()
+        return
+
+    user_id = int(user["user_id"])
+    st.session_state.authenticated = True
+    st.session_state.user_id = user_id
+    st.session_state.username = user["username"]
+    st.session_state.auth_session_token = token
+    st.session_state.active_user_id = user_id
+    touch_auth_session(token)
+
+
+def _read_auth_cookie() -> str | None:
+    try:
+        token = st.context.cookies.get(AUTH_COOKIE_NAME)
+    except (AttributeError, KeyError, RuntimeError):
+        return None
+    return str(token) if token else None
+
+
+def _set_auth_cookie(token: str, expires_at: datetime) -> bool:
+    if CookieController is None:
+        st.error(
+            "Persistent login requires streamlit-cookies-controller. "
+            "Install the documented dependency and restart the app."
+        )
+        return False
+
+    try:
+        if "idp_auth_cookie_controller" not in st.session_state:
+            st.session_state.idp_auth_cookie_controller = {}
+        controller = CookieController(key="idp_auth_cookie_controller")
+        controller.set(
+            AUTH_COOKIE_NAME,
+            token,
+            path="/",
+            expires=expires_at,
+            secure=_request_uses_https(),
+            same_site="lax",
+        )
+        st.session_state.pop("idp_auth_cookie_set_ack", None)
+        CookieController(key="idp_auth_cookie_set_ack")
+    except Exception:
+        st.error("The browser session cookie could not be set.")
+        return False
+    return True
+
+
+def _remove_auth_cookie() -> None:
+    if CookieController is None:
+        return
+
+    cookie_cache = st.session_state.get("idp_auth_cookie_controller")
+    if not isinstance(cookie_cache, dict) or AUTH_COOKIE_NAME not in cookie_cache:
+        st.session_state.idp_auth_cookie_controller = {AUTH_COOKIE_NAME: ""}
+
+    try:
+        controller = CookieController(key="idp_auth_cookie_controller")
+        controller.remove(
+            AUTH_COOKIE_NAME,
+            path="/",
+            secure=_request_uses_https(),
+            same_site="lax",
+        )
+    except Exception:
+        pass
+
+    st.session_state.pop("idp_auth_cookie_remove_ack", None)
+    CookieController(key="idp_auth_cookie_remove_ack")
+
+
+def _request_uses_https() -> bool:
+    try:
+        forwarded_proto = st.context.headers.get("X-Forwarded-Proto", "")
+        if str(forwarded_proto).split(",", maxsplit=1)[0].strip().lower() == "https":
+            return True
+        return str(st.context.url).lower().startswith("https://")
+    except (AttributeError, RuntimeError):
+        return False
+
+
+def _page_from_query() -> str:
+    try:
+        slug = str(st.query_params.get("page", "upload"))
+    except (AttributeError, RuntimeError):
+        slug = "upload"
+    return SLUG_PAGES.get(slug, "Upload & Process")
+
+
+def _document_id_from_query() -> int | None:
+    try:
+        value = st.query_params.get("document_id")
+        return int(value) if value not in (None, "") else None
+    except (AttributeError, TypeError, ValueError, RuntimeError):
+        return None
+
+
+def _sync_safe_query_params(page: str | None = None) -> None:
+    if page in PAGE_SLUGS:
+        st.query_params["page"] = PAGE_SLUGS[page]
+    document_id = st.session_state.get("current_document_id")
+    if document_id is None:
+        st.query_params.pop("document_id", None)
+    else:
+        st.query_params["document_id"] = str(document_id)
+
+
+def _clear_safe_query_params() -> None:
+    st.query_params.clear()
 
 def _ensure_active_user_state() -> None:
     user_id = st.session_state.user_id
     if user_id is not None and st.session_state.active_user_id != user_id:
-        _reset_document_session_state(user_id)
+        _reset_document_session_state(user_id, clear_navigation=True)
 
 
-def _reset_document_session_state(user_id: int | None = None) -> None:
+def _reset_document_session_state(
+    user_id: int | None = None,
+    *,
+    clear_navigation: bool = False,
+) -> None:
     st.session_state.system = IDPSystem()
     st.session_state.processed_history = []
+    st.session_state.current_document_id = None
+    st.session_state.current_result = None
     st.session_state.active_user_id = user_id
     st.session_state.search_index_user_id = None
     st.session_state.search_index_document_count = None
+    for key in list(st.session_state):
+        if str(key).startswith(("preview_mode_", "image_preview_mode_")):
+            del st.session_state[key]
+    if clear_navigation:
+        st.session_state.active_page = "Upload & Process"
+        _clear_safe_query_params()
 
 
 def render_auth_page() -> None:
@@ -516,6 +702,11 @@ def render_login_form() -> None:
     with st.form("login_form"):
         username_or_email = st.text_input("Username or email")
         password = st.text_input("Password", type="password")
+        keep_signed_in = st.checkbox(
+            "Keep me signed in for 7 days",
+            value=False,
+            help="When unchecked, the browser session expires after 12 hours.",
+        )
         submitted = st.form_submit_button("Login", type="primary", width="stretch")
 
     if not submitted:
@@ -527,12 +718,25 @@ def render_login_form() -> None:
         return
 
     user_id = int(result.user["user_id"])
+    now = datetime.now(timezone.utc)
+    expires_at = (
+        now + timedelta(days=REMEMBERED_SESSION_DAYS)
+        if keep_signed_in
+        else now + timedelta(hours=SHORT_SESSION_HOURS)
+    )
+    token = create_auth_session(user_id, expires_at)
+    if not _set_auth_cookie(token, expires_at):
+        revoke_auth_session(token)
+        return
+
+    _reset_document_session_state(user_id, clear_navigation=True)
     st.session_state.authenticated = True
     st.session_state.user_id = user_id
     st.session_state.username = result.user["username"]
-    _reset_document_session_state(user_id)
+    st.session_state.auth_session_token = token
+    st.session_state.auth_restore_attempted = True
     st.success("Login successful.")
-    st.rerun()
+    st.stop()
 
 
 def render_register_form() -> None:
@@ -580,7 +784,9 @@ def _render_authenticated_sidebar() -> str:
         "Navigation",
         ["Upload & Process", "Search", "Document History"],
         label_visibility="collapsed",
+        key="active_page",
     )
+    _sync_safe_query_params(page)
     st.sidebar.divider()
     st.sidebar.caption("Local demo ? per-user document isolation")
     if st.sidebar.button("Sign out", width="stretch"):
@@ -589,11 +795,16 @@ def _render_authenticated_sidebar() -> str:
 
 
 def _logout() -> None:
+    token = st.session_state.get("auth_session_token") or _read_auth_cookie()
+    revoke_auth_session(token)
+    _remove_auth_cookie()
     st.session_state.authenticated = False
     st.session_state.user_id = None
     st.session_state.username = None
-    _reset_document_session_state(None)
-    st.rerun()
+    st.session_state.auth_session_token = None
+    st.session_state.auth_restore_attempted = True
+    _reset_document_session_state(None, clear_navigation=True)
+    st.stop()
 
 
 def render_upload_page() -> None:
@@ -615,7 +826,11 @@ def render_upload_page() -> None:
         )
         st.caption("Accepted formats: PDF · PNG · JPG · JPEG")
 
+    current_result = st.session_state.get("current_result")
     if uploaded_file is None:
+        if current_result is not None:
+            render_result(current_result)
+            return
         _empty_state(
             "No document selected",
             "Upload a PDF or image above to begin — the pipeline will extract, classify, and validate it automatically.",
@@ -682,10 +897,13 @@ def render_upload_page() -> None:
             progress.empty()
 
             st.toast("Document processed and saved successfully")
-            render_result(result)
         except Exception as exc:
             st.error("Document processing failed.")
             st.exception(exc)
+
+    current_result = st.session_state.get("current_result")
+    if current_result is not None:
+        render_result(current_result)
 
 
 def render_result(result: dict[str, Any]) -> None:
@@ -706,7 +924,11 @@ def render_result(result: dict[str, Any]) -> None:
 
     preview_col, text_col = st.columns([1.1, 1], gap="large")
     with preview_col:
-        render_document_preview(result.get("stored_path"), result.get("source_filename"))
+        render_document_preview(
+            result.get("stored_path"),
+            result.get("source_filename"),
+            document_id=result.get("persistent_document_id"),
+        )
     with text_col:
         with st.container(border=True):
             st.markdown("### Extracted text preview")
@@ -909,6 +1131,15 @@ def render_history_page() -> None:
             cols[0].metric("Supplier", _display_value(fields.get("supplier")))
             cols[1].metric("Date", _display_value(fields.get("date")))
             cols[2].metric("Amount", _display_value(fields.get("amount")))
+            document_id = int(record["document_id"])
+            st.button(
+                "Review document",
+                key=f"review_document_{document_id}",
+                type="secondary",
+                width="stretch",
+                on_click=_open_document_for_review,
+                args=(document_id,),
+            )
     st.caption("Showing 5 most recent · expand the table above to see all documents")
 
 
@@ -942,15 +1173,56 @@ def _result_from_document_record(record: dict[str, Any]) -> dict[str, Any]:
     return result
 
 
+
+def _load_current_document_result() -> dict[str, Any] | None:
+    document_id = st.session_state.get("current_document_id")
+    if document_id is None:
+        st.session_state.current_result = None
+        return None
+
+    try:
+        validated_id = int(document_id)
+    except (TypeError, ValueError):
+        st.session_state.current_document_id = None
+        st.session_state.current_result = None
+        _sync_safe_query_params()
+        return None
+
+    record = get_document_by_id_for_user(validated_id, _current_user_id())
+    if record is None:
+        st.session_state.current_document_id = None
+        st.session_state.current_result = None
+        _sync_safe_query_params()
+        return None
+
+    result = _result_from_document_record(record)
+    st.session_state.current_document_id = validated_id
+    st.session_state.current_result = result
+    return result
+
+
+def _open_document_for_review(document_id: int) -> None:
+    record = get_document_by_id_for_user(int(document_id), _current_user_id())
+    if record is None:
+        return
+    _remember_result(_result_from_document_record(record))
+    st.session_state.active_page = "Upload & Process"
+    _sync_safe_query_params("Upload & Process")
+
+
 def _remember_result(result: dict[str, Any]) -> None:
     document_id = result.get("persistent_document_id") or result.get("id")
     history = st.session_state.processed_history
     if document_id is not None:
+        document_id = int(document_id)
+        st.session_state.current_document_id = document_id
         history[:] = [
             item for item in history
             if (item.get("persistent_document_id") or item.get("id")) != document_id
         ]
     history.append(result)
+    st.session_state.current_result = result
+    _sync_safe_query_params()
 
 
 def _mark_search_index_stale() -> None:
@@ -1188,47 +1460,136 @@ def _highlight_query(text: str, query: str) -> str:
     return highlighted
 
 
-def render_document_preview(file_path: str | Path | None, filename: str | None = None) -> None:
+def render_document_preview(
+    file_path: str | Path | None,
+    filename: str | None = None,
+    *,
+    document_id: Any = None,
+) -> None:
     with st.container(border=True):
         st.markdown("### Original document preview")
-        if file_path in (None, ""):
+        path = _resolve_preview_path(file_path)
+        if path is None:
             st.info("Original file preview is unavailable for this record.")
             return
 
-        path = Path(str(file_path))
-        if not path.exists() or not path.is_file():
+        try:
+            file_bytes = path.read_bytes()
+        except OSError:
             st.info("Original file preview is unavailable for this record.")
             return
 
+        display_name = filename or path.name
         suffix = path.suffix.lower()
+        mime_type = _preview_mime_type(path)
+        preview_key = str(document_id) if document_id is not None else _preview_key(path)
+        _preview_file_header(display_name, suffix)
+        _download_original_file(file_bytes, display_name, mime_type)
+
         if suffix == ".pdf":
-            render_pdf_preview(path)
+            preview_mode = st.radio(
+                "Preview size",
+                ["Normal preview", "Large preview"],
+                horizontal=True,
+                key=f"preview_mode_{preview_key}",
+            )
+            st.caption("Use large preview mode to compare the source document with extracted fields.")
+            render_pdf_preview(file_bytes, height=1000 if preview_mode == "Large preview" else 650)
         elif suffix in {".png", ".jpg", ".jpeg"}:
-            render_image_preview(path, filename or path.name)
+            preview_mode = st.radio(
+                "Image preview mode",
+                ["Fit to page width", "Large preview"],
+                horizontal=True,
+                key=f"image_preview_mode_{preview_key}",
+            )
+            render_image_preview(file_bytes, display_name, large=preview_mode == "Large preview")
         else:
             st.info("Original file preview is unavailable for this record.")
 
 
-def render_pdf_preview(file_path: Path) -> None:
-    try:
-        encoded = base64.b64encode(file_path.read_bytes()).decode("ascii")
-    except OSError:
-        st.info("Original file preview is unavailable for this record.")
-        return
-
+def render_pdf_preview(file_bytes: bytes, height: int = 650) -> None:
+    encoded = base64.b64encode(file_bytes).decode("ascii")
     iframe = (
         '<iframe class="idp-pdf-preview" '
+        f'style="height:{int(height)}px" '
         f'src="data:application/pdf;base64,{encoded}#toolbar=1&navpanes=0"></iframe>'
     )
     st.markdown(iframe, unsafe_allow_html=True)
-    st.caption("If the browser cannot preview this PDF, open the stored file directly from the local uploads folder.")
+    st.caption("If the browser cannot preview this PDF, use the download button above.")
 
 
-def render_image_preview(file_path: Path, filename: str | None = None) -> None:
+def render_image_preview(file_bytes: bytes, filename: str | None = None, large: bool = False) -> None:
     try:
-        st.image(str(file_path), caption=filename, use_container_width=True)
+        if large:
+            st.image(file_bytes, caption=filename, width=1100)
+            st.caption("Large preview renders the image at an expanded width for closer inspection.")
+        else:
+            st.image(file_bytes, caption=filename, use_container_width=True)
     except Exception:
         st.info("Original file preview is unavailable for this record.")
+
+
+def _preview_file_header(filename: str, suffix: str) -> None:
+    label = _preview_file_type_label(suffix)
+    html_value = (
+        '<div class="idp-preview-meta">'
+        f'<span class="idp-badge idp-badge-neutral">{_html_escape(label)}</span>'
+        f'<span class="idp-file-name">{_html_escape(filename)}</span>'
+        '</div>'
+    )
+    st.markdown(html_value, unsafe_allow_html=True)
+
+
+def _download_original_file(file_bytes: bytes, filename: str, mime_type: str) -> None:
+    st.download_button(
+        "Download original file",
+        data=file_bytes,
+        file_name=filename,
+        mime=mime_type,
+        type="secondary",
+        width="stretch",
+    )
+
+
+def _preview_mime_type(file_path: Path) -> str:
+    suffix = file_path.suffix.lower()
+    if suffix == ".pdf":
+        return "application/pdf"
+    if suffix == ".png":
+        return "image/png"
+    if suffix in {".jpg", ".jpeg"}:
+        return "image/jpeg"
+    return "application/octet-stream"
+
+
+def _preview_file_type_label(suffix: str) -> str:
+    labels = {
+        ".pdf": "PDF",
+        ".png": "PNG image",
+        ".jpg": "JPEG image",
+        ".jpeg": "JPEG image",
+    }
+    return labels.get(suffix.lower(), "File")
+
+
+def _resolve_preview_path(file_path: str | Path | None) -> Path | None:
+    if file_path in (None, ""):
+        return None
+
+    raw_path = Path(str(file_path))
+    candidates = [raw_path]
+    if not raw_path.is_absolute():
+        candidates.append(PROJECT_ROOT / raw_path)
+        candidates.append(Path.cwd() / raw_path)
+
+    for candidate in candidates:
+        if candidate.exists() and candidate.is_file():
+            return candidate
+    return None
+
+
+def _preview_key(file_path: Path) -> str:
+    return re.sub(r"[^a-zA-Z0-9_]+", "_", str(file_path.resolve()))
 
 
 def _page_header(title: str, description: str) -> None:
