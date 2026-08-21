@@ -34,10 +34,12 @@ class TestExactEntityMatching(unittest.TestCase):
         service.add_documents(docs)
 
         res = service.search("Ansell")
-        self.assertIn(res[0]["id"], {"docA", "docE"})
+        self.assertEqual({result["id"] for result in res}, {"docA", "docE"})
+        self.assertTrue(all(result["lexical_tier"] < 5 for result in res))
 
         res = service.search("Midas")
-        self.assertIn(res[0]["id"], {"docB", "docF"})
+        self.assertEqual({result["id"] for result in res}, {"docB", "docF"})
+        self.assertTrue(all(result["lexical_tier"] < 5 for result in res))
 
         res = service.search("Lalan")
         self.assertEqual(res[0]["id"], "docD")
@@ -75,6 +77,17 @@ class TestExactEntityMatching(unittest.TestCase):
         self.assertFalse(service.semantic_search_available)
         self.assertEqual([result["id"] for result in service.search("Ansell below 4000")], ["ansell"])
         self.assertEqual(service.search("Midas above 3000"), [])
+
+    def test_supplier_phrase_match_excludes_unrelated_semantic_results(self):
+        service = SemanticSearchService(embedding_service=MockEmbeddingService())
+        service.add_documents([
+            {"id": "ansell", "text": "Protective gloves", "fields": {"supplier": "Ansell Textiles Lanka"}},
+            {"id": "other", "text": "Protective gloves", "fields": {"supplier": "Other Supplier"}},
+        ])
+
+        results = service.search("Ansell Textiles")
+        self.assertEqual([result["id"] for result in results], ["ansell"])
+        self.assertEqual(results[0]["lexical_tier"], 2)
 
 if __name__ == '__main__':
     unittest.main()

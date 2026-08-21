@@ -194,13 +194,11 @@ class SemanticSearchService:
             if doc_num and doc_num == q_norm:
                 return 1
 
-            # Tier 2: exact supplier
+            # Tier 2: exact supplier phrase
             doc_sup = normalize_supplier_name(str(fields.get("supplier", "")))
-            if doc_sup and doc_sup == q_norm:
-                return 2
-
-            # Boundary match pattern
             pattern = r'\b' + re.escape(q_norm) + r'\b'
+            if doc_sup and re.search(pattern, doc_sup):
+                return 2
 
             # Tier 3: filename
             filename = normalize_supplier_name(str(doc.get("filename") or ""))
@@ -214,16 +212,15 @@ class SemanticSearchService:
 
             return 5
 
-        # A name-plus-amount query is conjunctive: if the remaining query text
-        # exactly identifies a document anywhere in the corpus, do not replace
-        # that entity condition with an unrelated semantic result after the
-        # amount filter has been applied.
-        requires_exact_entity_match = (
-            has_amount_constraint
-            and bool(semantic_text)
+        # Exact textual matches take precedence over dense similarity. Semantic
+        # fallback is only for queries with no Tier 1-4 match anywhere in the
+        # corpus, so an unrelated document cannot be appended to an entity
+        # search merely to fill the requested result count.
+        requires_exact_lexical_match = (
+            bool(semantic_text)
             and any(_compute_lexical_tier(doc, semantic_text) < 5 for doc in self.documents)
         )
-        if requires_exact_entity_match and not any(
+        if requires_exact_lexical_match and not any(
             _compute_lexical_tier(self.documents[index], semantic_text) < 5
             for index in candidate_indices
         ):
@@ -236,7 +233,7 @@ class SemanticSearchService:
                 semantic_text,
                 k,
                 _compute_lexical_tier,
-                requires_exact_entity_match,
+                requires_exact_lexical_match,
             )
 
         query_embedding = np.array([self.embedding_service.embed(semantic_text)], dtype="float32")
@@ -252,7 +249,7 @@ class SemanticSearchService:
             doc = self.documents[int(index)]
             tier = _compute_lexical_tier(doc, semantic_text)
 
-            if requires_exact_entity_match and tier == 5:
+            if requires_exact_lexical_match and tier == 5:
                 continue
 
             if tier == 5 and not has_structured_constraints and score < min_score:
@@ -305,7 +302,7 @@ def _lexical_search_results(
     query_text: str,
     k: int,
     compute_lexical_tier: Any,
-    requires_exact_entity_match: bool,
+    requires_exact_lexical_match: bool,
 ) -> list[dict[str, object]]:
     """Provide fast local search while the optional embedding model is unavailable."""
     from .query_parser import normalize_supplier_name
@@ -315,7 +312,7 @@ def _lexical_search_results(
     for index in candidate_indices:
         doc = documents[index]
         tier = compute_lexical_tier(doc, query_text)
-        if requires_exact_entity_match and tier == 5:
+        if requires_exact_lexical_match and tier == 5:
             continue
 
         fields = doc.get("fields") or {}
