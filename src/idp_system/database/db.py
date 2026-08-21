@@ -103,6 +103,12 @@ def initialize_document_tables(db_path: str | Path = APP_DB_PATH) -> None:
         )
         connection.execute(
             """
+            CREATE INDEX IF NOT EXISTS idx_documents_user_created
+            ON documents(user_id, created_at DESC, document_id DESC)
+            """
+        )
+        connection.execute(
+            """
             CREATE TABLE IF NOT EXISTS extracted_fields (
                 field_id INTEGER PRIMARY KEY AUTOINCREMENT,
                 document_id INTEGER NOT NULL,

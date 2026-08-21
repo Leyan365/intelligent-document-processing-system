@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import base64
 import html
+import math
 import re
 import sys
 from datetime import datetime, timedelta, timezone
@@ -27,10 +28,12 @@ PROJECT_ROOT = SRC_DIR.parent
 from idp_system.auth import authenticate_user, initialize_auth_db, register_user
 from idp_system.database.document_repository import (
     compute_file_hash,
+    count_documents_for_user,
     get_document_by_id_for_user,
     get_document_by_user_and_hash,
     initialize_document_tables,
     list_documents_for_user,
+    list_documents_for_user_page,
     save_processed_document,
 )
 from idp_system.database.session_repository import (
@@ -260,6 +263,17 @@ def apply_custom_styles() -> None:
             color: var(--c-primary) !important;
             box-shadow: var(--c-shadow);
         }
+        body:has(.idp-history-page) [data-testid="stTabs"] [data-baseweb="tab-list"] {
+            background: transparent;
+            padding: 0;
+            gap: 0.7rem;
+            margin-bottom: 0.75rem;
+        }
+        body:has(.idp-history-page) [data-testid="stTabs"] [data-baseweb="tab"] {
+            background: var(--c-surface);
+            border: 1px solid var(--c-border);
+            padding: 0.45rem 0.9rem;
+        }
 
         /* ─── Slider ─────────────────────────────────────────────────── */
         [data-testid="stSlider"] [data-baseweb="slider"] [role="slider"] {
@@ -311,6 +325,12 @@ def apply_custom_styles() -> None:
         .idp-feature-card span {
             color: var(--c-text-muted); font-size: 0.825rem; line-height: 1.4;
         }
+
+        /* Compact document history cards */
+        .idp-history-fields { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.45rem; margin-top: 0.55rem; }
+        .idp-history-field { min-width: 0; padding: 0.4rem 0.55rem; border: 1px solid var(--c-border-soft); border-radius: 0.45rem; background: var(--c-surface-2); }
+        .idp-history-field small { display: block; color: var(--c-text-muted); font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+        .idp-history-field strong { display: block; overflow: hidden; color: var(--c-text); font-size: 0.82rem; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
 
         /* Page header */
         .idp-page-header { margin-bottom: 1.75rem; padding-bottom: 1.25rem; border-bottom: 1px solid var(--c-border-soft); }
@@ -1091,15 +1111,99 @@ def render_history_page() -> None:
         "Document History",
         "All documents processed under your account, stored locally in the SQLite database.",
     )
-    records = list_documents_for_user(_current_user_id())
+    st.markdown('<div class="idp-history-page"></div>', unsafe_allow_html=True)
+    user_id = _current_user_id()
+    document_count = count_documents_for_user(user_id)
 
-    if not records:
+    if not document_count:
         _empty_state(
             "No documents yet",
             "Upload and process your first document — it will appear here once complete.",
         )
         return
 
+    recent_tab, all_documents_tab = st.tabs(["Recent documents", "All documents"])
+    with recent_tab:
+        records = list_documents_for_user_page(user_id, page_size=5)
+        _render_history_document_cards(records, key_namespace="recent")
+        if document_count > len(records):
+            st.caption(f"Showing the 5 most recent of {document_count} documents. Open All documents to browse the rest.")
+
+    with all_documents_tab:
+        filename_query = st.text_input(
+            "Search by document name",
+            placeholder="Start typing a filename…",
+            key="history_filename_query",
+            on_change=_reset_history_page,
+        )
+        matching_count = count_documents_for_user(user_id, filename_query)
+        if not matching_count:
+            st.info("No documents match that filename.")
+            return
+
+        page_size = 10
+        page_count = math.ceil(matching_count / page_size)
+        current_page = int(st.session_state.get("history_page", 1))
+        if current_page < 1 or current_page > page_count:
+            st.session_state.history_page = min(max(current_page, 1), page_count)
+        page_number = st.number_input(
+            "Page",
+            min_value=1,
+            max_value=page_count,
+            step=1,
+            key="history_page",
+        )
+        page_number = int(page_number)
+        offset = (page_number - 1) * page_size
+        records = list_documents_for_user_page(
+            user_id,
+            page_size=page_size,
+            offset=offset,
+            filename_query=filename_query,
+        )
+        st.caption(f"{matching_count} matching document{'s' if matching_count != 1 else ''} · page {page_number} of {page_count}")
+        with st.expander(f"📋 View this page as table ({len(records)} rows)", expanded=False):
+            st.dataframe(_history_table_rows(records), width="stretch", hide_index=True)
+        _render_history_document_cards(records, key_namespace=f"all_page_{page_number}")
+
+
+def _reset_history_page() -> None:
+    st.session_state.history_page = 1
+
+
+def _render_history_document_cards(records: list[dict[str, Any]], *, key_namespace: str) -> None:
+    """Render persisted documents with their existing ownership-safe review action."""
+    for record in records:
+        result = _result_from_document_record(record)
+        fields = result.get("fields") or {}
+        validation = result.get("validation") if isinstance(result.get("validation"), dict) else {}
+        with st.container(border=True):
+            top_left, top_right = st.columns([4, 1.25])
+            with top_left:
+                st.markdown(f"**📄 {_html_escape(_display_value(record.get('original_filename')))}**")
+                st.caption(
+                    f"{_classification_label_text(result.get('type'), result.get('confidence'), result.get('confidence_source'))}"
+                    f" · Processed: {_display_value(record.get('created_at'))}"
+                )
+            with top_right:
+                _status_badge(
+                    _pipeline_status_label(str(validation.get("pipeline_status", "processed"))),
+                    str(validation.get("pipeline_status", "processed")),
+                )
+                document_id = int(record["document_id"])
+                st.button(
+                    "Review",
+                    key=f"review_document_{key_namespace}_{document_id}",
+                    type="secondary",
+                    width="stretch",
+                    on_click=_open_document_for_review,
+                    args=(document_id,),
+                )
+            _render_history_field_chips(fields)
+
+
+def _history_table_rows(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Return the compact table representation for one history page only."""
     rows = []
     for record in records:
         result = _result_from_document_record(record)
@@ -1107,57 +1211,28 @@ def render_history_page() -> None:
         validation = result.get("validation") if isinstance(result.get("validation"), dict) else {}
         rows.append(
             {
-                "filename": record.get("original_filename"),
-                "document_type": _document_type_label(result.get("type")),
-                "created_at": record.get("created_at"),
-                "validation_status": _pipeline_status_label(str(validation.get("pipeline_status", "processed"))),
-                "supplier": fields.get("supplier"),
-                "date": fields.get("date"),
-                "amount": fields.get("amount"),
+                "Filename": record.get("original_filename"),
+                "Type": _document_type_label(result.get("type")),
+                "Processed": record.get("created_at"),
+                "Status": _pipeline_status_label(str(validation.get("pipeline_status", "processed"))),
+                "Supplier": fields.get("supplier"),
+                "Date": fields.get("date"),
+                "Amount": fields.get("amount"),
             }
         )
+    return rows
 
-    # Full sortable table in expander — cards below are the primary view
-    with st.expander(f"📋 View all {len(rows)} documents as table", expanded=False):
-        st.dataframe(rows, width="stretch", hide_index=True)
 
-    st.markdown("## Recent documents")
-    for record in records[:5]:
-        result = _result_from_document_record(record)
-        fields = result.get("fields") or {}
-        validation = result.get("validation") if isinstance(result.get("validation"), dict) else {}
-        with st.container(border=True):
-            top_left, top_right = st.columns([3, 1])
-            with top_left:
-                st.markdown(f"### 📄 {_display_value(record.get('original_filename'))}")
-                _badge(
-                    _classification_label_text(
-                        result.get("type"),
-                        result.get("confidence"),
-                        result.get("confidence_source"),
-                    )
-                )
-                st.caption(f"Processed: {_display_value(record.get('created_at'))}")
-            with top_right:
-                _status_badge(
-                    _pipeline_status_label(str(validation.get("pipeline_status", "processed"))),
-                    str(validation.get("pipeline_status", "processed")),
-                )
-            st.divider()
-            cols = st.columns(3)
-            cols[0].metric("Supplier", _display_value(fields.get("supplier")))
-            cols[1].metric("Date", _display_value(fields.get("date")))
-            cols[2].metric("Amount", _display_value(fields.get("amount")))
-            document_id = int(record["document_id"])
-            st.button(
-                "Review document",
-                key=f"review_document_{document_id}",
-                type="secondary",
-                width="stretch",
-                on_click=_open_document_for_review,
-                args=(document_id,),
-            )
-    st.caption("Showing 5 most recent · expand the table above to see all documents")
+def _render_history_field_chips(fields: dict[str, Any]) -> None:
+    """Render compact key-field chips for a history document card."""
+    chips = "".join(
+        '<span class="idp-history-field">'
+        f"<small>{_html_escape(label)}</small>"
+        f"<strong>{_html_escape(_display_value(fields.get(field_name)))}</strong>"
+        "</span>"
+        for label, field_name in (("Supplier", "supplier"), ("Date", "date"), ("Amount", "amount"))
+    )
+    st.markdown(f'<div class="idp-history-fields">{chips}</div>', unsafe_allow_html=True)
 
 
 def _save_uploaded_file_bytes(uploaded_file: Any, file_bytes: bytes, user_id: int) -> Path:

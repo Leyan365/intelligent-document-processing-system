@@ -79,6 +79,50 @@ def list_documents_for_user(
     return [_document_from_row(row) for row in rows]
 
 
+def count_documents_for_user(
+    user_id: int,
+    filename_query: str | None = None,
+    db_path: str | Path = APP_DB_PATH,
+) -> int:
+    """Count a user's documents, optionally filtered by a filename fragment."""
+    where_clause, parameters = _document_filename_filter(user_id, filename_query)
+    with get_connection(db_path) as connection:
+        row = connection.execute(
+            f"SELECT COUNT(*) AS document_count FROM documents {where_clause}",
+            parameters,
+        ).fetchone()
+    return int(row["document_count"] if row is not None else 0)
+
+
+def list_documents_for_user_page(
+    user_id: int,
+    *,
+    page_size: int = 20,
+    offset: int = 0,
+    filename_query: str | None = None,
+    db_path: str | Path = APP_DB_PATH,
+) -> list[dict[str, Any]]:
+    """Return one newest-first, ownership-scoped page of document records."""
+    if page_size < 1:
+        raise ValueError("page_size must be at least 1.")
+    if offset < 0:
+        raise ValueError("offset cannot be negative.")
+
+    where_clause, parameters = _document_filename_filter(user_id, filename_query)
+    with get_connection(db_path) as connection:
+        rows = connection.execute(
+            f"""
+            SELECT *
+            FROM documents
+            {where_clause}
+            ORDER BY created_at DESC, document_id DESC
+            LIMIT ? OFFSET ?
+            """,
+            (*parameters, page_size, offset),
+        ).fetchall()
+    return [_document_from_row(row) for row in rows]
+
+
 def save_processed_document(
     user_id: int,
     uploaded_file_metadata: dict[str, Any],
@@ -182,6 +226,21 @@ def _document_from_row(row: Any | None) -> dict[str, Any] | None:
     result = _load_result_json(document.get("result_json"))
     document["result"] = result
     return document
+
+
+def _document_filename_filter(user_id: int, filename_query: str | None) -> tuple[str, tuple[Any, ...]]:
+    """Build an ownership filter and an optional literal filename fragment filter."""
+    normalized_query = (filename_query or "").strip()
+    if not normalized_query:
+        return "WHERE user_id = ?", (user_id,)
+
+    escaped_query = (
+        normalized_query.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+    )
+    return (
+        "WHERE user_id = ? AND original_filename LIKE ? ESCAPE '\\' COLLATE NOCASE",
+        (user_id, f"%{escaped_query}%"),
+    )
 
 
 def _load_result_json(value: Any) -> dict[str, Any]:
