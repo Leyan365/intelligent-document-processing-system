@@ -12,6 +12,7 @@ from typing import Any
 from uuid import uuid4
 
 import streamlit as st
+import streamlit.components.v1 as components
 
 SRC_DIR = Path(__file__).resolve().parents[2]
 if str(SRC_DIR) not in sys.path:
@@ -1501,20 +1502,25 @@ def render_document_preview(
         if suffix == ".pdf":
             preview_mode = st.radio(
                 "Preview size",
-                ["Normal preview", "Large preview"],
+                ["Normal preview", "Fullscreen preview"],
                 horizontal=True,
                 key=f"preview_mode_{preview_key}",
             )
-            st.caption("Use large preview mode to compare the source document with extracted fields.")
-            render_pdf_preview(file_bytes, height=1000 if preview_mode == "Large preview" else 650)
+            if preview_mode == "Fullscreen preview":
+                render_fullscreen_preview(file_bytes, display_name, mime_type)
+            else:
+                render_pdf_preview(file_bytes)
         elif suffix in {".png", ".jpg", ".jpeg"}:
             preview_mode = st.radio(
                 "Image preview mode",
-                ["Fit to page width", "Large preview"],
+                ["Fit to page width", "Fullscreen preview"],
                 horizontal=True,
                 key=f"image_preview_mode_{preview_key}",
             )
-            render_image_preview(file_bytes, display_name, large=preview_mode == "Large preview")
+            if preview_mode == "Fullscreen preview":
+                render_fullscreen_preview(file_bytes, display_name, mime_type)
+            else:
+                render_image_preview(file_bytes, display_name)
         else:
             st.info("Original file preview is unavailable for this record.")
 
@@ -1530,15 +1536,89 @@ def render_pdf_preview(file_bytes: bytes, height: int = 650) -> None:
     st.caption("If the browser cannot preview this PDF, use the download button above.")
 
 
-def render_image_preview(file_bytes: bytes, filename: str | None = None, large: bool = False) -> None:
+def render_image_preview(file_bytes: bytes, filename: str | None = None) -> None:
     try:
-        if large:
-            st.image(file_bytes, caption=filename, width=1100)
-            st.caption("Large preview renders the image at an expanded width for closer inspection.")
-        else:
-            st.image(file_bytes, caption=filename, use_container_width=True)
+        st.image(file_bytes, caption=filename, use_container_width=True)
     except Exception:
         st.info("Original file preview is unavailable for this record.")
+
+
+def render_fullscreen_preview(file_bytes: bytes, filename: str, mime_type: str) -> None:
+    """Render a user-activated native fullscreen source-document preview.
+
+    Chromium blocks its built-in PDF viewer when it is nested in Streamlit's
+    sandboxed component iframe. PDFs are therefore rendered to page images for
+    this view instead of being embedded as another PDF iframe.
+    """
+    escaped_filename = _html_escape(filename)
+    if mime_type == "application/pdf":
+        page_images = _render_pdf_pages_for_fullscreen(file_bytes)
+        if not page_images:
+            st.warning("The PDF could not be prepared for fullscreen preview. Download the original file instead.")
+            return
+        viewer = "".join(
+            '<img class="preview-page" alt="PDF page {number}" '
+            'src="data:image/jpeg;base64,{image}">'
+            .format(number=page_number, image=image)
+            for page_number, image in enumerate(page_images, start=1)
+        )
+    else:
+        encoded = base64.b64encode(file_bytes).decode("ascii")
+        viewer = (
+            f'<img class="preview-image" alt="{escaped_filename}" '
+            f'src="data:{mime_type};base64,{encoded}">'
+        )
+
+    components.html(
+        f"""
+        <style>
+          * {{ box-sizing: border-box; }}
+          body {{ margin: 0; font-family: sans-serif; }}
+          #fullscreen-viewer {{ position: fixed; left: -10000px; width: 1px; height: 1px; overflow: hidden; background: #0f172a; color: #fff; }}
+          #fullscreen-viewer:fullscreen {{ position: fixed; left: 0; display: flex; flex-direction: column; width: 100vw; height: 100vh; }}
+          #fullscreen-viewer header {{ display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .7rem 1rem; background: #111827; }}
+          #fullscreen-viewer header span {{ overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }}
+          #preview-pages {{ flex: 1; min-height: 0; overflow: auto; padding: 1rem; background: #1f2937; }}
+          #preview-pages .preview-page {{ display: block; width: min(100%, 1100px); height: auto; margin: 0 auto 1rem; background: #fff; }}
+          #preview-pages .preview-image {{ display: block; width: 100%; height: 100%; object-fit: contain; }}
+          #fullscreen-viewer .hint {{ font-size: .82rem; color: #cbd5e1; }}
+          #open-fullscreen {{ width: 100%; border: 0; border-radius: .45rem; padding: .7rem 1rem; background: #2563eb; color: #fff; cursor: pointer; font-size: .95rem; font-weight: 600; }}
+          #open-fullscreen:hover {{ background: #1d4ed8; }}
+        </style>
+        <button id="open-fullscreen" type="button">Open fullscreen preview</button>
+        <div id="fullscreen-viewer">
+          <header><span>{escaped_filename}</span><span class="hint">Press Escape to exit</span></header>
+          <main id="preview-pages">{viewer}</main>
+        </div>
+        <script>
+          const viewer = document.getElementById("fullscreen-viewer");
+          document.getElementById("open-fullscreen").addEventListener("click", () => {{
+            const request = viewer.requestFullscreen || viewer.webkitRequestFullscreen;
+            if (request) request.call(viewer);
+          }});
+        </script>
+        """,
+        height=52,
+    )
+    st.caption("Open the source document in fullscreen; press Escape to return to the review page.")
+
+
+def _render_pdf_pages_for_fullscreen(file_bytes: bytes) -> list[str]:
+    """Return JPEG page previews without relying on the browser PDF plugin."""
+    try:
+        import fitz
+
+        with fitz.open(stream=file_bytes, filetype="pdf") as document:
+            return [
+                base64.b64encode(
+                    page.get_pixmap(matrix=fitz.Matrix(1.25, 1.25), alpha=False).tobytes(
+                        "jpeg", jpg_quality=85
+                    )
+                ).decode("ascii")
+                for page in document
+            ]
+    except Exception:
+        return []
 
 
 def _preview_file_header(filename: str, suffix: str) -> None:
