@@ -269,8 +269,9 @@ def apply_custom_styles() -> None:
         /* ━━━ Custom component classes ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
         /* Hero / auth shell */
-        .idp-auth-shell { max-width: 900px; margin: 0 auto; padding: 3rem 0 1.5rem; }
-        .idp-hero { text-align: center; margin-bottom: 2rem; }
+        body:has(.idp-auth-shell) .block-container { padding-top: 2.5rem; padding-bottom: 0.5rem; }
+        .idp-auth-shell { padding: 0.75rem 0 0.5rem; }
+        .idp-hero { text-align: left; margin-bottom: 0.75rem; }
         .idp-eyebrow {
             display: inline-flex; align-items: center; gap: 0.4rem;
             padding: 0.3rem 0.85rem; border-radius: 999px;
@@ -278,37 +279,37 @@ def apply_custom_styles() -> None:
             border: 1px solid var(--c-primary-mid);
             font-size: 0.75rem; font-weight: 700;
             text-transform: uppercase; letter-spacing: 0.06em;
-            margin-bottom: 0.9rem;
+            margin-bottom: 0.45rem;
         }
         .idp-hero h1 {
-            font-size: clamp(2rem, 4.5vw, 3rem);
+            font-size: clamp(1.65rem, 3.5vw, 2.35rem);
             line-height: 1.1; color: var(--c-text);
-            margin: 0.5rem 0 0.75rem;
+            margin: 0.35rem 0 0.45rem;
         }
         .idp-hero p {
-            color: var(--c-text-muted); font-size: 1.05rem;
-            line-height: 1.7; max-width: 640px; margin: 0 auto;
+            color: var(--c-text-muted); font-size: 0.95rem;
+            line-height: 1.45; max-width: 640px; margin: 0;
         }
 
         /* Feature cards on auth page */
         .idp-feature-grid {
-            display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 1rem; margin: 1.75rem 0 0.5rem;
+            display: grid; grid-template-columns: 1fr;
+            gap: 0.55rem; margin: 0.75rem 0 0.25rem;
         }
         .idp-feature-card {
             background: var(--c-surface); border: 1px solid var(--c-border-soft);
-            border-radius: var(--r-card); padding: 1.25rem 1.1rem;
+            border-radius: var(--r-card); padding: 0.7rem 0.9rem;
             box-shadow: var(--c-shadow);
         }
         .idp-feature-card .icon {
-            font-size: 1.4rem; margin-bottom: 0.6rem; display: block;
+            font-size: 1rem; margin-bottom: 0.25rem; display: block;
         }
         .idp-feature-card strong {
             display: block; color: var(--c-text); font-size: 0.95rem;
-            font-weight: 700; margin-bottom: 0.35rem;
+            font-weight: 700; margin-bottom: 0.15rem;
         }
         .idp-feature-card span {
-            color: var(--c-text-muted); font-size: 0.875rem; line-height: 1.55;
+            color: var(--c-text-muted); font-size: 0.825rem; line-height: 1.4;
         }
 
         /* Page header */
@@ -679,25 +680,28 @@ def render_auth_page() -> None:
         '<h1>Intelligent Document<br>Processing System</h1>'
         '<p>Upload invoices, receipts, and purchase orders. Get instant extraction, validation, and semantic search, all running locally.</p>'
         '</div>'
+        '</div>'
+    )
+    features_html = (
         '<div class="idp-feature-grid">'
         '<div class="idp-feature-card"><span class="icon">Extract</span><strong>Automated Extraction</strong><span>OCR, classification, and field extraction in one seamless local pipeline.</span></div>'
         '<div class="idp-feature-card"><span class="icon">Private</span><strong>Private History</strong><span>Every document stays scoped to your account; no data leaves your machine.</span></div>'
         '<div class="idp-feature-card"><span class="icon">Search</span><strong>Semantic Search</strong><span>Find documents by meaning, supplier, amount, or document type instantly.</span></div>'
         '</div>'
-        '</div>'
     )
     st.markdown(hero_html, unsafe_allow_html=True)
 
-    center = st.columns([1, 1.5, 1])
-    with center[1]:
+    overview, authentication = st.columns([1.25, 0.9], gap="large")
+    with overview:
+        st.markdown(features_html, unsafe_allow_html=True)
+
+    with authentication:
         with st.container(border=True):
             login_tab, register_tab = st.tabs(["Sign in", "Create account"])
             with login_tab:
                 render_login_form()
             with register_tab:
                 render_register_form()
-            note_html = '<div class="idp-note">Local prototype: authentication is for demo purposes only and does not include enterprise controls such as MFA or RBAC.</div>'
-            st.markdown(note_html, unsafe_allow_html=True)
 
 
 def render_login_form() -> None:
