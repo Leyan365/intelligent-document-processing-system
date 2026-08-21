@@ -188,7 +188,7 @@ The search layer (src/idp_system/pipeline/search.py) implements a hybrid archite
 This is implemented to handle hard constraints (e.g., amount inequalities, document numbers, exact supplier names) that pure embedding similarity cannot accurately enforce.
 
 Flow:
-1. `query_parser.py` extracts document types, amount operators (>, <, =, ranges), identifiers, and supplier names from the natural language query.
+1. `query_parser.py` extracts document types, amount and date operators (before, after, exact values, and ranges), identifiers, and supplier names from the natural language query. Dates are normalized before comparison, with ambiguous numeric dates interpreted day-first.
 2. The remaining text is treated as semantic_text.
 3. In-memory `SemanticSearchService.documents` are filtered against the parsed structured constraints.
 4. Candidate documents are evaluated for exact normalized occurrences of query terms (e.g., `"Ansell"`) across critical entity fields: document numbers (Tier 1), supplier metadata (Tier 2), original filename boundaries (Tier 3), and extracted OCR/native text bodies (Tier 4). When any exact match exists, only those matches are returned.

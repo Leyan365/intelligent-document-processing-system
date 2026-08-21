@@ -80,7 +80,7 @@ class SemanticSearchService:
         if not self.documents:
             return []
 
-        from .query_parser import parse_query, parse_amount
+        from .query_parser import parse_date, parse_query, parse_amount
 
         known_suppliers = []
         for doc in self.documents:
@@ -90,6 +90,8 @@ class SemanticSearchService:
                 known_suppliers.append(sup)
 
         parsed_query = parse_query(query, known_suppliers=list(set(known_suppliers)))
+        if parsed_query.date_error:
+            raise ValueError(parsed_query.date_error)
 
         has_amount_constraint = (
             parsed_query.amount_eq is not None or
@@ -100,12 +102,22 @@ class SemanticSearchService:
             parsed_query.amount_min is not None or
             parsed_query.amount_max is not None
         )
+        has_date_constraint = (
+            parsed_query.date_eq is not None or
+            parsed_query.date_lt is not None or
+            parsed_query.date_lte is not None or
+            parsed_query.date_gt is not None or
+            parsed_query.date_gte is not None or
+            parsed_query.date_min is not None or
+            parsed_query.date_max is not None
+        )
 
         has_structured_constraints = (
             parsed_query.document_type is not None or
             parsed_query.supplier is not None or
             parsed_query.document_number is not None or
-            has_amount_constraint
+            has_amount_constraint or
+            has_date_constraint
         )
 
         candidate_indices = []
@@ -150,6 +162,27 @@ class SemanticSearchService:
                     if parsed_query.amount_gte is not None and doc_amt < parsed_query.amount_gte:
                         passed = False
                     if parsed_query.amount_min is not None and (doc_amt < parsed_query.amount_min or doc_amt > parsed_query.amount_max):
+                        passed = False
+
+            if passed and has_date_constraint:
+                fields = doc.get("fields") or {}
+                doc_date = parse_date(str(fields.get("date", "")))
+                if doc_date is None:
+                    passed = False
+                else:
+                    if parsed_query.date_eq is not None and doc_date != parsed_query.date_eq:
+                        passed = False
+                    if parsed_query.date_lt is not None and doc_date >= parsed_query.date_lt:
+                        passed = False
+                    if parsed_query.date_lte is not None and doc_date > parsed_query.date_lte:
+                        passed = False
+                    if parsed_query.date_gt is not None and doc_date <= parsed_query.date_gt:
+                        passed = False
+                    if parsed_query.date_gte is not None and doc_date < parsed_query.date_gte:
+                        passed = False
+                    if parsed_query.date_min is not None and (
+                        doc_date < parsed_query.date_min or doc_date > parsed_query.date_max
+                    ):
                         passed = False
 
             if passed:

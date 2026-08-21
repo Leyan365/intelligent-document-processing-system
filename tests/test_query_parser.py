@@ -1,6 +1,8 @@
 import unittest
-from idp_system.pipeline.query_parser import parse_query, parse_amount
+from datetime import date
 from decimal import Decimal
+
+from idp_system.pipeline.query_parser import parse_date, parse_query, parse_amount
 
 class TestQueryParser(unittest.TestCase):
     def test_amount_parsing(self):
@@ -28,6 +30,23 @@ class TestQueryParser(unittest.TestCase):
 
         q4 = parse_query("amount 3000")
         self.assertEqual(q4.amount_eq, Decimal("3000"))
+
+    def test_date_parsing_and_date_filters(self):
+        self.assertEqual(parse_date("1.4.2026"), date(2026, 4, 1))
+        self.assertEqual(parse_date("1st of January 2026"), date(2026, 1, 1))
+        self.assertEqual(parse_date("25-Nov-2025"), date(2025, 11, 25))
+
+        after_query = parse_query("purchase orders after 1st of January 2026")
+        self.assertEqual(after_query.document_type, "purchase_order")
+        self.assertEqual(after_query.date_gt, date(2026, 1, 1))
+        self.assertEqual(after_query.semantic_text, "")
+
+        range_query = parse_query("between 1.1.2026 and 31.1.2026")
+        self.assertEqual(range_query.date_min, date(2026, 1, 1))
+        self.assertEqual(range_query.date_max, date(2026, 1, 31))
+
+        incomplete_query = parse_query("after January 2026")
+        self.assertIsNotNone(incomplete_query.date_error)
 
 if __name__ == '__main__':
     unittest.main()

@@ -89,5 +89,16 @@ class TestExactEntityMatching(unittest.TestCase):
         self.assertEqual([result["id"] for result in results], ["ansell"])
         self.assertEqual(results[0]["lexical_tier"], 2)
 
+    def test_entity_and_date_constraints_are_conjunctive(self):
+        service = SemanticSearchService(embedding_service=MockEmbeddingService())
+        service.add_documents([
+            {"id": "ansell-january", "filename": "Ansell_January.pdf", "text": "Ansell order", "fields": {"date": "21-Jan-2026"}},
+            {"id": "ansell-december", "filename": "Ansell_December.pdf", "text": "Ansell order", "fields": {"date": "26.12.2025"}},
+            {"id": "other-january", "filename": "Other_January.pdf", "text": "Other order", "fields": {"date": "21-Jan-2026"}},
+        ])
+
+        results = service.search("Ansell after 1st January 2026")
+        self.assertEqual([result["id"] for result in results], ["ansell-january"])
+
 if __name__ == '__main__':
     unittest.main()

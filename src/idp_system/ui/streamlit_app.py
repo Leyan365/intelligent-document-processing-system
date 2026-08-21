@@ -1036,6 +1036,9 @@ def render_search_page() -> None:
 
     try:
         results = st.session_state.system.search(query, k=k)
+    except ValueError as exc:
+        st.warning(str(exc))
+        return
     except Exception as exc:
         st.error("Search failed.")
         st.exception(exc)
