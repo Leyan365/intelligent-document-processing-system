@@ -16,13 +16,27 @@ DATE_VALUE_PATTERN = (
     r"\d{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)[a-z]*\.?\s+\d{4}"
 )
 AMOUNT_VALUE_PATTERN = (
-    r"(?:Rs\.?|RM|\$)?\s*\d{1,3}(?:,\d{3})*(?:\.\d{2})|"
-    r"(?:Rs\.?|RM|\$)?\s*\d+(?:\.\d{2})"
+    r"(?:Rs\.?|RM|LKR|\$)?\s*\d{1,3}(?:,\d{3})*(?:\.\d{2})|"
+    r"(?:Rs\.?|RM|LKR|\$)?\s*\d+(?:\.\d{2})"
+)
+CURRENCY_AMOUNT_PATTERN = re.compile(
+    r"(?:Rs\.?|RM|LKR|\$)\s*\d{1,3}(?:,\d{3})*(?:\.\d{2})|"
+    r"(?:Rs\.?|RM|LKR|\$)\s*\d+(?:\.\d{2})",
+    re.IGNORECASE,
 )
 
 INVOICE_NUMBER_PATTERN = re.compile(
     r"\b(?:invoice\s*(?:no|number|#)?|inv)\s*[:#\-]?\s*"
     r"((?:INV[-\s]?\d{2,})|\d{3,})\b",
+    re.IGNORECASE,
+)
+RECEIPT_NUMBER_PATTERN = re.compile(
+    r"\breceipt\s*(?:no\.?|number|#)\s*[:#\-]?\s*"
+    r"((?=[A-Z0-9\-]*\d)[A-Z0-9][A-Z0-9\-]{2,})\b",
+    re.IGNORECASE,
+)
+RECEIPT_LAYOUT_NUMBER_PATTERN = re.compile(
+    r"\b([A-Z]{1,6}-\d{4}-\d{3,})\b",
     re.IGNORECASE,
 )
 GENERIC_NUMBER_PATTERN = re.compile(
@@ -73,7 +87,8 @@ PO_AMOUNT_PATTERN = re.compile(
 )
 RECEIPT_AMOUNT_PATTERN = re.compile(
     rf"\b(?:grand\s+total|net\s+total|total\s+amt\s+payable|totalamt\s+payable|"
-    rf"total\s+amount|amount\s+payable|paid\s+amount|balance\s+due|amount|total)\b"
+    rf"total\s+amount|amount\s+payable|amount\s+paid|paid\s+amount|balance\s+paid|"
+    rf"balance\s+due|amount|total)\b"
     rf"\s*[:\-]?\s*({AMOUNT_VALUE_PATTERN})",
     re.IGNORECASE,
 )
@@ -85,6 +100,8 @@ RECEIPT_AMOUNT_LABELS = (
     r"total\s+amt(?:\s+incl\.?\s+gst)?",
     r"total\s+amount",
     r"amount\s+payable",
+    r"balance\s+paid",
+    r"amount\s+paid",
     r"paid\s+amount",
     r"total",
 )
@@ -134,9 +151,18 @@ GENERIC_SUPPLIER_HEADINGS = {
     "receipt",
     "sales",
     "sales receipt",
+    "shipped to",
+    "billed to",
+    "name",
+    "page of",
     "tax invoice",
     "total",
 }
+ORGANIZATION_NAME_PATTERN = re.compile(
+    r"\b(?:co\.?|company|corp\.?|corporation|group|inc\.?|incorporated|llc|ltd\.?|"
+    r"limited|services|solutions|technologies|technology)\b",
+    re.IGNORECASE,
+)
 SUPPLIER_STOP_MARKERS = (
     "supplier address",
     "address",
@@ -221,7 +247,7 @@ def _extract_purchase_order_fields(text: str) -> dict[str, str | None]:
 
 def _extract_receipt_fields(text: str) -> dict[str, str | None]:
     return {
-        "invoice_number": _first_regex_group(INVOICE_NUMBER_PATTERN, text),
+        "invoice_number": _extract_receipt_number(text),
         "date": _extract_receipt_date(text),
         "amount": _extract_receipt_amount(text),
         "supplier": _extract_receipt_supplier(text),
@@ -265,6 +291,19 @@ def _extract_po_number(text: str) -> str | None:
         if value:
             return re.sub(r"\s+", "", value).lstrip("#-")
     return _extract_po_number_before_label(text)
+
+
+def _extract_receipt_number(text: str) -> str | None:
+    labeled_number = _first_regex_group(RECEIPT_NUMBER_PATTERN, text)
+    if labeled_number:
+        return re.sub(r"\s+", "", labeled_number)
+
+    if re.search(r"\breceipt\s*(?:no\.?|number|#)\b", text, re.IGNORECASE):
+        layout_number = _first_regex_group(RECEIPT_LAYOUT_NUMBER_PATTERN, text)
+        if layout_number:
+            return layout_number
+
+    return _first_regex_group(INVOICE_NUMBER_PATTERN, text)
 
 
 def _extract_po_number_before_label(text: str) -> str | None:
@@ -319,10 +358,28 @@ def _extract_po_amount(text: str) -> str | None:
 
 
 def _extract_receipt_amount(text: str) -> str | None:
-    priority_amount = _nearest_amount_for_labels(text, RECEIPT_AMOUNT_LABELS)
+    priority_amount = _nearest_amount_for_labels(text, RECEIPT_AMOUNT_LABELS, max_distance=45)
     if priority_amount:
         return priority_amount
     candidates = _amount_candidates(RECEIPT_AMOUNT_PATTERN, text)
+    if candidates:
+        return max(candidates, key=lambda item: item[0])[1]
+    return _extract_separated_receipt_total(text)
+
+
+def _extract_separated_receipt_total(text: str) -> str | None:
+    """Handle column-ordered receipts where final-total labels and values separate."""
+    if not re.search(r"\b(?:balance\s+paid|amount\s+paid|grand\s+total|net\s+total)\b", text, re.IGNORECASE):
+        return None
+    if re.search(r"\b(?:cash|change|tender(?:ed)?)\b", text, re.IGNORECASE):
+        return None
+
+    candidates: list[tuple[float, str]] = []
+    for match in CURRENCY_AMOUNT_PATTERN.finditer(text):
+        value = _clean_value(match.group(0))
+        amount = _parse_amount(value)
+        if value and amount is not None:
+            candidates.append((amount, value))
     return max(candidates, key=lambda item: item[0])[1] if candidates else None
 
 
@@ -342,7 +399,12 @@ def _amount_candidates(pattern: re.Pattern[str], text: str) -> list[tuple[float,
     return candidates
 
 
-def _nearest_amount_for_labels(text: str, label_patterns: tuple[str, ...]) -> str | None:
+def _nearest_amount_for_labels(
+    text: str,
+    label_patterns: tuple[str, ...],
+    *,
+    max_distance: int | None = None,
+) -> str | None:
     for label_pattern in label_patterns:
         pattern = re.compile(rf"\b{label_pattern}\b", re.IGNORECASE)
         label_candidates: list[tuple[int, float, str]] = []
@@ -365,7 +427,8 @@ def _nearest_amount_for_labels(text: str, label_patterns: tuple[str, ...]) -> st
                         abs(absolute_start - label_match.start()),
                         abs(absolute_start - label_match.end()),
                     )
-                    label_candidates.append((distance, amount, value))
+                    if max_distance is None or distance <= max_distance:
+                        label_candidates.append((distance, amount, value))
         if label_candidates:
             return max(label_candidates, key=lambda item: (-item[0], item[1]))[2]
     return None
@@ -404,7 +467,22 @@ def _extract_receipt_supplier(text: str) -> str | None:
     supplier = _extract_supplier_from_label(text)
     if supplier:
         return supplier
-    return _extract_top_merchant_line(text)
+    top_line = _extract_top_merchant_line(text)
+    if top_line:
+        return top_line
+    return _extract_organization_line(text)
+
+
+def _extract_organization_line(text: str) -> str | None:
+    for line in text.splitlines()[:50]:
+        candidate = _clean_supplier(line)
+        if (
+            candidate
+            and ORGANIZATION_NAME_PATTERN.search(candidate)
+            and _is_plausible_supplier(candidate)
+        ):
+            return candidate
+    return None
 
 
 def _extract_invoice_supplier_after_number(text: str) -> str | None:
@@ -488,6 +566,8 @@ def _extract_top_merchant_line(text: str) -> str | None:
 def _clean_supplier(value: str | None) -> str | None:
     cleaned = _clean_value(value)
     if not cleaned:
+        return None
+    if _is_plausible_date(cleaned):
         return None
 
     earliest_stop: int | None = None
@@ -583,6 +663,8 @@ def _parse_amount(value: str | None) -> float | None:
         .replace("Rs.", "")
         .replace("Rs", "")
         .replace("RM", "")
+        .replace("LKR", "")
+        .replace("lkr", "")
         .replace(",", "")
         .replace(" ", "")
     )

@@ -5,6 +5,7 @@ from __future__ import annotations
 import unittest
 
 from idp_system.pipeline.extractor import extract_fields
+from idp_system.pipeline.validation import validate_fields
 
 
 class ExtractionReliabilityTests(unittest.TestCase):
@@ -32,6 +33,57 @@ class ExtractionReliabilityTests(unittest.TestCase):
         text = "SALES RECEIPT\nQuantum Logic Solutions\nCash Total 45.50"
         fields = extract_fields(text, "receipt")
         self.assertEqual("Quantum Logic Solutions", fields["supplier"])
+
+    def test_receipt_number_labels_support_numeric_and_hyphenated_values(self) -> None:
+        numeric = extract_fields("Receipt #\n100\nReceipt Date\n07/05/2026", "receipt")
+        hyphenated = extract_fields("Receipt number 2165-3067-7825", "receipt")
+        self.assertEqual("100", numeric["invoice_number"])
+        self.assertEqual("2165-3067-7825", hyphenated["invoice_number"])
+
+    def test_column_ordered_receipt_number_uses_defensible_id_shape(self) -> None:
+        text = (
+            "Receipt No.\nShipped to:\nName\nCompany Name\nAddress\n"
+            "Blue Wave Tech Solutions\nBW-2026-001\n07/05/2026"
+        )
+        fields = extract_fields(text, "receipt")
+        self.assertEqual("BW-2026-001", fields["invoice_number"])
+
+    def test_receipt_number_is_not_inferred_from_date_phone_or_card(self) -> None:
+        text = "Receipt\nItem AB-2026-001\nDate 07/05/2026\nTel +94 11 234 5678\nVisa - 8049"
+        fields = extract_fields(text, "receipt")
+        self.assertIsNone(fields["invoice_number"])
+
+    def test_page_marker_yields_to_receipt_merchant(self) -> None:
+        text = (
+            "Page 1 of 1\nReceipt\nInvoice number\nSXC5WIT9-0002\n"
+            "Receipt number 2165-3067-7825\nDate paid\nJune 4, 2026\nOpenAI OpCo, LLC"
+        )
+        fields = extract_fields(text, "receipt")
+        self.assertEqual("OpenAI OpCo, LLC", fields["supplier"])
+
+    def test_column_ordered_receipt_prefers_organization_name(self) -> None:
+        text = (
+            "Receipt Template\nCompany name\nAddress\nContact Details\nReceipt\nDate\n"
+            "Receipt No.\nShipped to:\nName\nCompany Name\nAddress\nContact Details\n"
+            "Blue Wave Tech Solutions\n12/4 Lotus Road"
+        )
+        fields = extract_fields(text, "receipt")
+        self.assertEqual("Blue Wave Tech Solutions", fields["supplier"])
+
+    def test_column_ordered_balance_paid_uses_largest_currency_total(self) -> None:
+        text = (
+            "Total\nBalance Paid\nTotal Tax Rate\nSubtotal less Discount\nTax Rate\n"
+            "Discount\nSubtotal\nlkr 45,000\nlkr 90,000\nlkr 130,000.00\n"
+            "lkr 5,000.00\nlkr 125,000.00\nlkr 10,000.00\nlkr 135,000.00"
+        )
+        fields = extract_fields(text, "receipt")
+        self.assertEqual("lkr 135,000.00", fields["amount"])
+        self.assertTrue(validate_fields("receipt", fields)["fields"]["amount"]["valid"])
+
+    def test_cash_and_change_do_not_override_labeled_total(self) -> None:
+        text = "TOTAL\n$20.00\nCASH TENDERED\n$50.00\nCHANGE\n$30.00"
+        fields = extract_fields(text, "receipt")
+        self.assertEqual("$20.00", fields["amount"])
 
     def test_po_to_recipient_layout(self) -> None:
         text = (

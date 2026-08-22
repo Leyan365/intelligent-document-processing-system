@@ -278,7 +278,7 @@ def _valid_date(value: str) -> bool:
 
 def _valid_amount(value: str) -> bool:
     cleaned = value.replace(",", "").strip()
-    return re.fullmatch(r"(?:Rs\.?|RM|\$)?\s*\d+(?:\.\d{1,2})?", cleaned, re.IGNORECASE) is not None
+    return re.fullmatch(r"(?:Rs\.?|RM|LKR|\$)?\s*\d+(?:\.\d{1,2})?", cleaned, re.IGNORECASE) is not None
 
 
 def _bad_supplier(value: str) -> bool:
