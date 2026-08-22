@@ -1,0 +1,101 @@
+benchmark_id,field,type,expected,actual,raw_actual
+REC-001,supplier,value_mismatch,118 mj mookata house,1 18 mj mookata house,1 18 MJ MOOKATA HOUSE
+REC-001,amount,value_mismatch,102.40,,
+REC-001,document_number,value_mismatch,rec-003763,,
+REC-002,supplier,value_mismatch,ali baba international sdn bhd,table 11,Table 11
+REC-002,date,value_mismatch,2018-02-19,,
+REC-002,amount,value_mismatch,23.80,2.50,2.50
+REC-002,document_number,value_mismatch,186242,,
+REC-003,supplier,value_mismatch,bemed (sp) sdn bhd.,cash receip t,CASH RECEIP T
+REC-003,date,value_mismatch,2018-03-27,,
+REC-003,amount,value_mismatch,308.70,,
+REC-003,document_number,value_mismatch,236100411023,,
+REC-004,supplier,value_mismatch,boon seng paper sdn bhd,tota1 amnt incl,Tota1 Amnt Incl
+REC-004,date,value_mismatch,2018-03-19,,
+REC-004,amount,value_mismatch,31.80,,
+REC-004,document_number,value_mismatch,cs180319-0015,,
+REC-005,supplier,value_mismatch,contento,contenio (adtshc-k),CONTENIO (ADTSHC-K)
+REC-005,date,value_mismatch,2018-03-20,,
+REC-005,amount,value_mismatch,21.60,,
+REC-006,supplier,value_mismatch,econsave cash & carry (fc) s/b,teh #,TEH #
+REC-006,date,value_mismatch,2018-03-22,,
+REC-006,amount,value_mismatch,5.15,,
+REC-006,document_number,value_mismatch,220318/10049/04/24382,,
+REC-007,supplier,value_mismatch,foodelico sdn. bhd.,,
+REC-007,date,value_mismatch,2018-04-29,,
+REC-007,amount,value_mismatch,13.00,,
+REC-007,document_number,value_mismatch,c4004290047,,
+REC-008,amount,value_mismatch,14.70,,
+REC-008,document_number,value_mismatch,002411100014400,,
+REC-009,supplier,value_mismatch,heng kee delights bak kut teh.,tax tnvo1ce :tbo11s30,TAX TNVO1CE :TBO11S30
+REC-009,amount,value_mismatch,42.00,,
+REC-009,document_number,value_mismatch,tb011530,,
+REC-010,supplier,value_mismatch,kaison furnishing sdn bhd,kaison furnishing son bho,KAISON FURNISHING SON BHO
+REC-010,date,value_mismatch,2018-03-25,,
+REC-010,amount,value_mismatch,18.70,3.90,3.90
+REC-010,document_number,value_mismatch,0000mtw-p2000086706,,
+REC-011,supplier,value_mismatch,king's confectionery s/b,tel no: 03,TEL NO: 03
+REC-011,amount,value_mismatch,9.90,,
+REC-011,document_number,value_mismatch,bkj30786544,,
+REC-012,amount,value_mismatch,10.50,15.00,15.00
+REC-012,document_number,value_mismatch,cs24358,,
+REC-013,supplier,value_mismatch,mr. d. i. y. (kuchai) sdn bhd,kawasan perindustrian balakong,KAWASAN PERINDUSTRIAN BALAKONG
+REC-013,date,value_mismatch,2018-03-19,,
+REC-013,amount,value_mismatch,11.90,,
+REC-014,supplier,value_mismatch,old town kopitam snd bhd,table:5 / 1,Table:5 / 1
+REC-014,date,value_mismatch,2018-03-22,,
+REC-014,amount,value_mismatch,30.25,,
+REC-014,document_number,value_mismatch,37617,,
+REC-015,supplier,value_mismatch,pasaraya borong pintar sdn bhd,unitamt exc. amt inc,UNITAmt Exc. Amt Inc
+REC-015,amount,value_mismatch,10.40,,
+REC-015,document_number,value_mismatch,cr0008252,,
+REC-016,supplier,value_mismatch,popular book co. (m) sdn bhd,popular,POPULAR
+REC-016,amount,value_mismatch,140.65,35.70,35.70
+REC-016,document_number,value_mismatch,9050338975,,
+REC-017,supplier,value_mismatch,restoran hoetim,table,TABLE
+REC-017,amount,value_mismatch,83.00,,
+REC-017,document_number,value_mismatch,2,,
+REC-018,supplier,value_mismatch,sanyu stationery shop,journal book bopgs a4 70g,JOURNAL BOOK BOPGS A4 70G
+REC-018,document_number,value_mismatch,cs-sa-0076015,,
+REC-019,supplier,value_mismatch,segi cash & carry sdn. bhd.,iqf squid tube 1kgt,IQF SQUID TUBE 1KGT
+REC-019,date,value_mismatch,2018-03-12,,
+REC-019,amount,value_mismatch,145.10,,
+REC-019,document_number,value_mismatch,31911,,
+REC-020,amount,value_mismatch,20.70,,
+REC-020,document_number,value_mismatch,502192,,
+REC-021,supplier,value_mismatch,syarikat kam lai seong sdn bhd,item,ITEM
+REC-021,amount,value_mismatch,190.00,0.00,0.00
+REC-021,document_number,value_mismatch,inv-37002,37002,37002
+REC-022,amount,value_mismatch,167.55,,
+REC-022,document_number,value_mismatch,507684,,
+REC-023,supplier,value_mismatch,unihakka international sdn bhd,un arkanterwatcnalsctspo,UN ARKANTERWATCNALSCTSPO
+REC-023,date,value_mismatch,2018-03-07,,
+REC-023,amount,value_mismatch,8.20,,
+REC-023,document_number,value_mismatch,or18030702170417,,
+REC-024,supplier,value_mismatch,western eastern stationery sdn. bhd,western eastern,WESTERN EASTERN
+REC-024,date,value_mismatch,2018-02-26,,
+REC-025,date,value_mismatch,2018-03-13,,
+REC-025,amount,value_mismatch,72.00,,
+REC-025,document_number,value_mismatch,cs00035862,,
+PO-002,supplier,value_mismatch,screenline (pvt) ltd,"screenline (pvt) ltd 18 4 thalawatte gonawala kelaniya, srilanka. tel..:011","SCREENLINE (PVT) LTD 18 4 THALAWATTE GONAWALA KELANIYA, Srilanka. Tel..:011"
+PO-002,amount,value_mismatch,748.36,,
+PO-002,document_number,value_mismatch,kpo00146851,,
+PO-003,supplier,value_mismatch,screenline (pvt) ltd,,
+PO-003,amount,value_mismatch,16.90,,
+PO-003,document_number,value_mismatch,446161,,
+PO-004,supplier,value_mismatch,screenline,,
+PO-004,amount,value_mismatch,2045.28,,
+PO-004,document_number,value_mismatch,441496a,,
+PO-005,supplier,value_mismatch,screenline,,
+PO-005,amount,value_mismatch,1308.98,,
+PO-005,document_number,value_mismatch,441497a,,
+PO-006,supplier,value_mismatch,screenline (pvt) ltd,screenline (pvt) ltd 18/4,SCREENLINE (Pvt) LTD 18/4
+PO-006,amount,value_mismatch,148.74,126.05,126.05
+PO-006,document_number,value_mismatch,inpo000006,032026,032026
+PO-007,supplier,value_mismatch,screenline,screenline (pvt) ltd. p.o. number,Screenline (Pvt) Ltd. P.O. Number
+PO-008,supplier,value_mismatch,screenline,screenline (pvt) ltd. p.o. number,Screenline (Pvt) Ltd. P.O. Number
+PO-009,supplier,value_mismatch,screenline,screenline (pvt) ltd. p.o. number,Screenline (Pvt) Ltd. P.O. Number
+INV-026,supplier,false_positive,,balance due,Balance Due
+INV-027,supplier,false_positive,,balance due,Balance Due
+INV-028,supplier,false_positive,,balance due,Balance Due
+INV-029,supplier,false_positive,,balance due,Balance Due

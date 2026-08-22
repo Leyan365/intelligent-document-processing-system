@@ -1,0 +1,79 @@
+id,field,cause,expected,actual
+REC-001,supplier,OCR_RECOGNITION,118 mj mookata house,1 18 mj mookata house
+REC-001,amount,OCR_RECOGNITION,102.4,
+REC-001,document_number,OCR_RECOGNITION,rec-003763,
+REC-002,supplier,OCR_RECOGNITION,ali baba international sdn bhd,table 11
+REC-002,date,OCR_RECOGNITION,2018-02-19,
+REC-002,amount,OCR_RECOGNITION,23.8,2.50
+REC-002,document_number,EXTRACTION_RULE,186242,
+REC-003,supplier,OCR_RECOGNITION,bemed (sp) sdn bhd.,cash receip t
+REC-003,date,OCR_RECOGNITION,2018-03-27,
+REC-003,amount,OCR_RECOGNITION,308.7,
+REC-003,document_number,OCR_RECOGNITION,236100411023,
+REC-004,supplier,OCR_RECOGNITION,boon seng paper sdn bhd,tota1 amnt incl
+REC-004,date,OCR_RECOGNITION,2018-03-19,
+REC-004,amount,OCR_RECOGNITION,31.8,
+REC-004,document_number,EXTRACTION_RULE,cs180319-0015,
+REC-005,supplier,OCR_RECOGNITION,contento,contenio (adtshc-k)
+REC-005,date,OCR_RECOGNITION,2018-03-20,
+REC-005,amount,OCR_RECOGNITION,21.6,
+REC-006,supplier,OCR_RECOGNITION,econsave cash & carry (fc) s/b,teh #
+REC-006,date,OCR_RECOGNITION,2018-03-22,
+REC-006,amount,OCR_RECOGNITION,5.15,
+REC-006,document_number,EXTRACTION_RULE,220318/10049/04/24382,
+REC-007,supplier,EXTRACTION_RULE,foodelico sdn. bhd.,
+REC-007,date,OCR_RECOGNITION,2018-04-29,
+REC-007,amount,EXTRACTION_RULE,13.0,
+REC-007,document_number,EXTRACTION_RULE,c4004290047,
+REC-008,amount,OCR_RECOGNITION,14.7,
+REC-008,document_number,EXTRACTION_RULE,002411100014400,
+REC-009,supplier,OCR_RECOGNITION,heng kee delights bak kut teh.,tax tnvo1ce :tbo11s30
+REC-009,amount,OCR_RECOGNITION,42.0,
+REC-009,document_number,OCR_RECOGNITION,tb011530,
+REC-010,supplier,OCR_RECOGNITION,kaison furnishing sdn bhd,kaison furnishing son bho
+REC-010,date,OCR_RECOGNITION,2018-03-25,
+REC-010,amount,OCR_RECOGNITION,18.7,3.90
+REC-010,document_number,OCR_RECOGNITION,0000mtw-p2000086706,
+REC-011,supplier,OCR_RECOGNITION,king's confectionery s/b,tel no: 03
+REC-011,amount,OCR_RECOGNITION,9.9,
+REC-011,document_number,OCR_RECOGNITION,bkj30786544,
+REC-012,amount,OCR_RECOGNITION,10.5,15.00
+REC-012,document_number,OCR_RECOGNITION,cs24358,
+REC-013,supplier,OCR_RECOGNITION,mr. d. i. y. (kuchai) sdn bhd,kawasan perindustrian balakong
+REC-013,date,OCR_RECOGNITION,2018-03-19,
+REC-013,amount,EXTRACTION_RULE,11.9,
+REC-014,supplier,OCR_RECOGNITION,old town kopitam snd bhd,table:5 / 1
+REC-014,date,OCR_RECOGNITION,2018-03-22,
+REC-014,amount,OCR_RECOGNITION,30.25,
+REC-014,document_number,OCR_RECOGNITION,37617,
+REC-015,supplier,OCR_RECOGNITION,pasaraya borong pintar sdn bhd,unitamt exc. amt inc
+REC-015,amount,OCR_RECOGNITION,10.4,
+REC-015,document_number,EXTRACTION_RULE,cr0008252,
+REC-016,supplier,OCR_RECOGNITION,popular book co. (m) sdn bhd,popular
+REC-016,amount,OCR_RECOGNITION,140.65,35.70
+REC-016,document_number,EXTRACTION_RULE,9050338975,
+REC-017,supplier,OCR_RECOGNITION,restoran hoetim,table
+REC-017,amount,EXTRACTION_RULE,83.0,
+REC-017,document_number,EXTRACTION_RULE,2,
+REC-018,supplier,OCR_RECOGNITION,sanyu stationery shop,journal book bopgs a4 70g
+REC-018,document_number,EXTRACTION_RULE,cs-sa-0076015,
+REC-019,supplier,OCR_RECOGNITION,segi cash & carry sdn. bhd.,iqf squid tube 1kgt
+REC-019,date,OCR_RECOGNITION,2018-03-12,
+REC-019,amount,OCR_RECOGNITION,145.1,
+REC-019,document_number,OCR_RECOGNITION,31911,
+REC-020,amount,OCR_RECOGNITION,20.7,
+REC-020,document_number,EXTRACTION_RULE,502192,
+REC-021,supplier,OCR_RECOGNITION,syarikat kam lai seong sdn bhd,item
+REC-021,amount,OCR_RECOGNITION,190.0,0.00
+REC-021,document_number,EXTRACTION_RULE,inv-37002,37002
+REC-022,amount,OCR_RECOGNITION,167.55,
+REC-022,document_number,OCR_RECOGNITION,507684,
+REC-023,supplier,OCR_RECOGNITION,unihakka international sdn bhd,un arkanterwatcnalsctspo
+REC-023,date,OCR_RECOGNITION,2018-03-07,
+REC-023,amount,EXTRACTION_RULE,8.2,
+REC-023,document_number,OCR_RECOGNITION,or18030702170417,
+REC-024,supplier,OCR_RECOGNITION,western eastern stationery sdn. bhd,western eastern
+REC-024,date,OCR_RECOGNITION,2018-02-26,
+REC-025,date,OCR_RECOGNITION,2018-03-13,
+REC-025,amount,OCR_RECOGNITION,72.0,
+REC-025,document_number,OCR_RECOGNITION,cs00035862,

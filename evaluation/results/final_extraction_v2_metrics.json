@@ -1,0 +1,269 @@
+{
+  "overall": {
+    "supplier_exact_match_accuracy": 0.5254237288135594,
+    "date_exact_match_accuracy": 0.75,
+    "amount_exact_match_accuracy": 0.5555555555555556,
+    "document_number_exact_match_accuracy": 0.5178571428571429,
+    "overall_eligible_field_exact_match_accuracy": 0.5826086956521739,
+    "total_eligible_fields": 230,
+    "total_correct_fields": 134,
+    "total_ambiguous_exclusions": 14,
+    "not_present_false_positives": 4
+  },
+  "presence": {
+    "supplier": {
+      "tp": 55,
+      "fp": 4,
+      "tn": 0,
+      "fn": 4,
+      "precision": 0.9322033898305084,
+      "recall": 0.9322033898305084,
+      "f1": 0.9322033898305084
+    },
+    "document_number": {
+      "tp": 31,
+      "fp": 0,
+      "tn": 4,
+      "fn": 25,
+      "precision": 1.0,
+      "recall": 0.5535714285714286,
+      "f1": 0.7126436781609196
+    }
+  },
+  "by_class": {
+    "invoice": {
+      "document_count": 29,
+      "supplier_correct": 25,
+      "supplier_eligible": 25,
+      "date_correct": 29,
+      "date_eligible": 29,
+      "amount_correct": 29,
+      "amount_eligible": 29,
+      "document_number_correct": 25,
+      "document_number_eligible": 25,
+      "overall_accuracy": 1.0,
+      "processing_failures": 0
+    },
+    "receipt": {
+      "document_count": 25,
+      "supplier_correct": 5,
+      "supplier_eligible": 25,
+      "date_correct": 2,
+      "date_eligible": 15,
+      "amount_correct": 2,
+      "amount_eligible": 25,
+      "document_number_correct": 0,
+      "document_number_eligible": 22,
+      "overall_accuracy": 0.10344827586206896,
+      "processing_failures": 1
+    },
+    "purchase_order": {
+      "document_count": 9,
+      "supplier_correct": 1,
+      "supplier_eligible": 9,
+      "date_correct": 8,
+      "date_eligible": 8,
+      "amount_correct": 4,
+      "amount_eligible": 9,
+      "document_number_correct": 4,
+      "document_number_eligible": 9,
+      "overall_accuracy": 0.4857142857142857,
+      "processing_failures": 0
+    }
+  },
+  "by_method": {
+    "native_pdf_text": {
+      "document_count": 38,
+      "successful_processing_count": 38,
+      "supplier_accuracy": 0.7647058823529411,
+      "date_accuracy": 1.0,
+      "amount_accuracy": 0.868421052631579,
+      "document_number_accuracy": 0.8529411764705882,
+      "overall_accuracy": 0.8741258741258742
+    },
+    "ocr_image": {
+      "document_count": 25,
+      "successful_processing_count": 24,
+      "supplier_accuracy": 0.2,
+      "date_accuracy": 0.13333333333333333,
+      "amount_accuracy": 0.08,
+      "document_number_accuracy": 0.0,
+      "overall_accuracy": 0.10344827586206896
+    }
+  },
+  "negative_field_test": {
+    "supplier_correct_empty": 0,
+    "supplier_false_positive": 4,
+    "document_number_correct_empty": 4,
+    "document_number_false_positive": 0
+  },
+  "po_results": [
+    {
+      "filename": "PO10049686.pdf",
+      "expected_supplier": "screenline (pvt) ltd",
+      "extracted_supplier": "screenline (pvt) ltd",
+      "expected_date": "2026-06-24",
+      "extracted_date": "2026-06-24",
+      "expected_amount": 846.77,
+      "extracted_amount": 846.77,
+      "expected_document_number": "po10049686",
+      "extracted_document_number": "po10049686",
+      "field_correctness": {
+        "supplier": true,
+        "date": true,
+        "amount": true,
+        "document_number": true
+      },
+      "validation_score": NaN
+    },
+    {
+      "filename": "KPO00146851.pdf",
+      "expected_supplier": "screenline (pvt) ltd",
+      "extracted_supplier": "screenline (pvt) ltd 18 4 thalawatte gonawala kelaniya, srilanka. tel..:011",
+      "expected_date": NaN,
+      "extracted_date": "2026-02-23",
+      "expected_amount": 748.36,
+      "extracted_amount": NaN,
+      "expected_document_number": "kpo00146851",
+      "extracted_document_number": NaN,
+      "field_correctness": {
+        "supplier": false,
+        "date": null,
+        "amount": false,
+        "document_number": false
+      },
+      "validation_score": NaN
+    },
+    {
+      "filename": "PO No - 446161.pdf",
+      "expected_supplier": "screenline (pvt) ltd",
+      "extracted_supplier": NaN,
+      "expected_date": "2026-06-23",
+      "extracted_date": "2026-06-23",
+      "expected_amount": 16.9,
+      "extracted_amount": NaN,
+      "expected_document_number": "446161",
+      "extracted_document_number": NaN,
+      "field_correctness": {
+        "supplier": false,
+        "date": true,
+        "amount": false,
+        "document_number": false
+      },
+      "validation_score": NaN
+    },
+    {
+      "filename": "RWB-TE1359  -B6Z-B9F-F3E-F66-U10-001-023-782---Heat seal- PO No - 441496....pdf",
+      "expected_supplier": "screenline",
+      "extracted_supplier": NaN,
+      "expected_date": "2026-05-28",
+      "extracted_date": "2026-05-28",
+      "expected_amount": 2045.28,
+      "extracted_amount": NaN,
+      "expected_document_number": "441496a",
+      "extracted_document_number": NaN,
+      "field_correctness": {
+        "supplier": false,
+        "date": true,
+        "amount": false,
+        "document_number": false
+      },
+      "validation_score": NaN
+    },
+    {
+      "filename": "RWB-TE1432 -B9F-C87-U10-001-023--Heat seal- PO No - 441497.pdf",
+      "expected_supplier": "screenline",
+      "extracted_supplier": NaN,
+      "expected_date": "2026-05-28",
+      "extracted_date": "2026-05-28",
+      "expected_amount": 1308.98,
+      "extracted_amount": NaN,
+      "expected_document_number": "441497a",
+      "extracted_document_number": NaN,
+      "field_correctness": {
+        "supplier": false,
+        "date": true,
+        "amount": false,
+        "document_number": false
+      },
+      "validation_score": NaN
+    },
+    {
+      "filename": "INPO000006 SCREENLINE SEMEX P.H.P.U FERTACZ #PO - 032026 FLEX TS.PDF",
+      "expected_supplier": "screenline (pvt) ltd",
+      "extracted_supplier": "screenline (pvt) ltd 18/4",
+      "expected_date": "2026-05-14",
+      "extracted_date": "2026-05-14",
+      "expected_amount": 148.74,
+      "extracted_amount": 126.05,
+      "expected_document_number": "inpo000006",
+      "extracted_document_number": "032026",
+      "field_correctness": {
+        "supplier": false,
+        "date": true,
+        "amount": false,
+        "document_number": false
+      },
+      "validation_score": NaN
+    },
+    {
+      "filename": "1000598004.pdf",
+      "expected_supplier": "screenline",
+      "extracted_supplier": "screenline (pvt) ltd. p.o. number",
+      "expected_date": "2026-05-18",
+      "extracted_date": "2026-05-18",
+      "expected_amount": 2134.12,
+      "extracted_amount": 2134.12,
+      "expected_document_number": "1000598004",
+      "extracted_document_number": "1000598004",
+      "field_correctness": {
+        "supplier": false,
+        "date": true,
+        "amount": true,
+        "document_number": true
+      },
+      "validation_score": NaN
+    },
+    {
+      "filename": "1000600798.pdf",
+      "expected_supplier": "screenline",
+      "extracted_supplier": "screenline (pvt) ltd. p.o. number",
+      "expected_date": "2026-06-15",
+      "extracted_date": "2026-06-15",
+      "expected_amount": 1927.12,
+      "extracted_amount": 1927.12,
+      "expected_document_number": "1000600798",
+      "extracted_document_number": "1000600798",
+      "field_correctness": {
+        "supplier": false,
+        "date": true,
+        "amount": true,
+        "document_number": true
+      },
+      "validation_score": NaN
+    },
+    {
+      "filename": "PO#1000601852.pdf",
+      "expected_supplier": "screenline",
+      "extracted_supplier": "screenline (pvt) ltd. p.o. number",
+      "expected_date": "2026-06-24",
+      "extracted_date": "2026-06-24",
+      "expected_amount": 33.74,
+      "extracted_amount": 33.74,
+      "expected_document_number": "1000601852",
+      "extracted_document_number": "1000601852",
+      "field_correctness": {
+        "supplier": false,
+        "date": true,
+        "amount": true,
+        "document_number": true
+      },
+      "validation_score": NaN
+    }
+  ],
+  "validation_quality": {
+    "incorrect_documents_with_warnings": 32,
+    "incorrect_documents_missed": 5,
+    "clean_documents_with_warnings": 0
+  }
+}
