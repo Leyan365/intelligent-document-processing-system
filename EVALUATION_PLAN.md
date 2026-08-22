@@ -157,3 +157,31 @@ be cited as semantic performance. The current 19-query corpus includes six
 semantic-only queries but remains too small for broad final claims; retain its
 judgments and expand it to roughly 25–35
 representative queries before final dissertation evaluation.
+
+## Frozen Final Extraction Benchmark
+
+The fixed extraction manifest is
+`evaluation/final_extraction_benchmark.csv` with SHA-256
+`04016ac551e0a5dc8a9136085f6025ce7f880113b2953dbc2154d6fa6301b592`.
+It contains 25 `FINAL_UNSEEN` invoices, 25
+`EXTRACTION_ONLY_CLASSIFIER_VAL` SROIE receipts, and 9 `FINAL_UNSEEN`
+independent purchase orders. The annotation protocol, field normalization,
+status policy, and planned exact-match evaluation definitions are frozen in
+`evaluation/FINAL_EXTRACTION_BENCHMARK.md`.
+
+No final extraction or end-to-end metrics have been run against this manifest.
+
+## Frozen Final Extraction Benchmark V2
+
+V2 supersedes V1 for final extraction scoring while preserving V1 as historical
+evidence. The V2 manifest is `evaluation/final_extraction_benchmark_v2.csv`,
+with SHA-256
+`ae7e45d4b273002da476c54208c346cc31f5c53b473adc3900da89bf6a9774d9`.
+It retains all 59 V1 rows unchanged and adds four `FINAL_UNSEEN` native-text
+invoice shells. Those source documents genuinely omit both supplier and document
+number, adding four `NOT_PRESENT` cases for each field.
+
+V2 contains 63 documents: 29 invoices, 25 receipts, and 9 purchase orders.
+It supports supplier and document-number false-positive presence evaluation;
+date and amount still have no gold-absent cases. No final extraction or
+end-to-end metrics have been run against V2.
