@@ -136,3 +136,21 @@ latency benchmarking, and layout-aware classification comparison.
 - **Status:** Complete
 - **Feature:** Deterministic structured query parsing and candidate filtering before semantic ranking.
 - **Details:** Resolves issue where pure embeddings fail on numeric inequality, ranges, and hard constraints. Added query_parser.py which extracts conditions like elow 3000, invoice, or exact identifiers, falling back to FAISS for semantic remaining text. Zero-match correctly returns no results. Added conservative relevance threshold support.
+
+## Phase 19A: Evaluation and Extraction Reliability Cleanup
+
+- Search evaluation records now use the production `type` plus nested `fields`
+  schema and are validated before indexing.
+- Reports identify query categories, retrieval coverage, backend identity,
+  fallback use, per-query results, per-category metrics, overall metrics, and
+  no-match correctness.
+- A real local MiniLM + FAISS run completed on the current 19-query controlled
+  benchmark. This is regression evidence, not a broad final quality claim.
+- Extraction now supports short strongly prefixed invoice identifiers such as
+  `INV-42`, rejects generic receipt headings as suppliers, and handles
+  additional supplier and order-number layouts from the local PO samples.
+- Failed new uploads are removed when no persisted record owns their path.
+- Focused extraction/core tests and curated dependency pins were added.
+- Pure semantic ranking has no uncalibrated score cutoff by default; callers
+  can still supply an explicit `min_score` when a calibrated threshold is
+  required. Structured filters and exact-match gates are unchanged.

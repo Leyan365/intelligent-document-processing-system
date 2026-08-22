@@ -138,3 +138,10 @@ validation results, and file metadata.
 Database and authentication operations do not retrain, modify, or overwrite the
 local classifier model artifact (`models/document_classifier.joblib`), which
 remains local.
+
+## Runtime Version Compatibility
+
+The current classifier artifact was trained and serialized with scikit-learn
+1.7.1. `requirements.txt` deliberately pins that version to avoid model
+persistence compatibility warnings or silent behavioral changes. The classifier
+was not retrained during Phase 19A.

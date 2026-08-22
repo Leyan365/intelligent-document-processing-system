@@ -142,3 +142,18 @@ Final retrieval evaluation should now distinguish between:
 - mixed structured + semantic queries (mixed constraint + semantic intent)
 
 Do not claim improved performance until measured. The existing semantic evaluation framework (evaluation/search_eval.py) must be extended or supplemented to capture this distinction. The ability to evaluate the original semantic retrieval mode (A: semantic-only vs B: hybrid structured + semantic) should be preserved to strengthen RQ2.
+
+## Phase 19A: Corrected Search Evaluation Harness
+
+The evaluator now mirrors the application search schema: `id`, `text`, `type`,
+`filename`, and nested `fields` for document number, supplier, amount, and date.
+Malformed records fail before indexing. Reports identify the embedding and index
+backends, fallback use, retrieval coverage, per-query results, category metrics,
+overall metrics, and no-match correctness.
+
+The default run uses `sentence-transformers/all-MiniLM-L6-v2` with FAISS. The
+deterministic backend remains only for offline harness regression and must not
+be cited as semantic performance. The current 19-query corpus includes six
+semantic-only queries but remains too small for broad final claims; retain its
+judgments and expand it to roughly 25–35
+representative queries before final dissertation evaluation.

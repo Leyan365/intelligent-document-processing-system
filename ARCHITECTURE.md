@@ -38,9 +38,10 @@ layers around the current core pipeline.
 
 ## Major Components
 
-- `loader.py`: Routes local input files by extension and extracts text. Digital
-  PDFs are processed with PyMuPDF first. If direct PDF text is too short, pages
-  are rendered and passed to OCR. Plain text-like files are read directly.
+- `loader.py`: Routes local input files by extension and extracts text. The
+  application upload scope is PDF, PNG, JPG, and JPEG. Digital PDFs use PyMuPDF
+  first; low-text PDFs and images use OCR. Internal plain-text formats remain
+  available for scripts/tests. DOCX is not implemented or advertised.
 - `preprocessing.py`: Applies OpenCV image preprocessing for OCR, including
   grayscale conversion, denoising, adaptive thresholding, and deskewing.
 - `ocr.py`: Wraps PaddleOCR with lazy initialization and compatibility handling
@@ -195,3 +196,12 @@ Flow:
 5. For a name-plus-amount query, an entity that occurs anywhere in the corpus must also occur in the amount-qualified candidates; otherwise the system returns no results rather than an unrelated semantic fallback.
 6. When no exact match exists and the locally cached sentence-transformer model is available, FAISS ranks semantic candidates (Tier 5). If it is unavailable, the search layer provides exact and keyword fallback results without waiting for network retries.
 7. If structured constraints are used but no documents match, the system correctly returns no results rather than violating the constraint with a semantically close fallback. A conservative relevance threshold is supported for pure semantic queries.
+
+Pure semantic ranking returns the top-K candidates without a hard similarity
+cutoff by default because the previous `0.0` cutoff was not calibrated. A
+caller may still provide `min_score` explicitly. This does not alter structured
+candidate filtering or exact-match precedence.
+
+The evaluator mirrors and validates this production document schema before
+indexing. Its default backend is MiniLM plus FAISS; deterministic hashed
+embeddings are retained only as an explicitly labelled offline test fallback.

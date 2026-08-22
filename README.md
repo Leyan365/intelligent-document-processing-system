@@ -120,13 +120,14 @@ needed for the current local pipeline.
 python -m venv venv
 .\venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
-python -m pip install pymupdf paddleocr paddlepaddle opencv-python numpy scikit-learn joblib sentence-transformers faiss-cpu streamlit spacy streamlit-cookies-controller==0.0.4
+python -m pip install -r requirements.txt
 ```
 
-There is currently no committed `requirements.txt`, so dependencies are listed
-directly here. PaddleOCR/PaddlePaddle installation can vary by operating system
-and CPU/GPU support; use the CPU build for the local dissertation setup unless
-GPU acceleration is explicitly configured.
+`requirements.txt` contains the curated project versions. Scikit-learn is pinned
+to 1.7.1 because the current classifier artifact was serialized with that
+version. PaddleOCR/PaddlePaddle installation can vary by operating system and
+CPU/GPU support; use the CPU build for the local dissertation setup unless GPU
+acceleration is explicitly configured.
 
 Optional spaCy entity extraction is used only when a local English model is
 available. The regex and document-type-aware extraction logic still run without
@@ -186,6 +187,14 @@ $env:PYTHONPATH='src'; python evaluation/search_eval.py
 $env:PYTHONPATH='src'; python evaluation/latency_eval.py
 $env:PYTHONPATH='src'; python evaluation/layout_feature_eval.py
 ```
+
+`search_eval.py` defaults to the production
+`sentence-transformers/all-MiniLM-L6-v2` plus FAISS path and reports semantic,
+entity, identifier, amount, date, mixed hybrid, and no-match categories. Use
+`--embedding-backend deterministic` only for offline evaluator testing; those
+metrics are labelled fallback/test-only. The current 19-query corpus includes
+six semantic-only queries and remains a controlled regression benchmark that
+should be expanded before final claims.
 
 ## Dataset Building
 
@@ -290,6 +299,8 @@ temporary uploads outside version control.
 
 - Development tuning and quality improvements where academically justified.
 - Final production-environment semantic-search evaluation reruns with real embeddings.
+- Expand the controlled search benchmark beyond its current 19 queries for
+  stronger final dissertation evidence.
 - Final real-document latency benchmark measurements in the full dependency environment.
 - Dataset and generalization improvements if feasible.
 - Final screenshots and reproducibility checks.
