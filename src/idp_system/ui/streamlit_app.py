@@ -887,11 +887,12 @@ def render_upload_page() -> None:
             render_result(result)
             return
 
-        stored_path = _save_uploaded_file_bytes(uploaded_file, file_bytes, user_id)
         progress = st.progress(0)
         stages = st.empty()
+        stored_path: Path | None = None
 
         try:
+            stored_path = _save_uploaded_file_bytes(uploaded_file, file_bytes, user_id)
             _render_stages(stages, active_index=0)
             progress.progress(20, text="Text Extraction")
             _render_stages(stages, active_index=1)
@@ -925,8 +926,11 @@ def render_upload_page() -> None:
 
             st.toast("Document processed and saved successfully")
         except Exception as exc:
+            cleanup_error = _cleanup_unpersisted_upload(stored_path, user_id, file_hash)
             st.error("Document processing failed.")
             st.exception(exc)
+            if cleanup_error:
+                st.warning(cleanup_error)
 
     current_result = st.session_state.get("current_result")
     if current_result is not None:
@@ -1243,6 +1247,39 @@ def _save_uploaded_file_bytes(uploaded_file: Any, file_bytes: bytes, user_id: in
     stored_path = upload_dir / safe_name
     stored_path.write_bytes(file_bytes)
     return stored_path
+
+
+def _cleanup_unpersisted_upload(
+    stored_path: Path | None,
+    user_id: int,
+    file_hash: str,
+) -> str | None:
+    """Remove only a newly saved file that has no matching persisted record."""
+    if stored_path is None:
+        return None
+
+    try:
+        persisted = get_document_by_user_and_hash(user_id, file_hash)
+    except Exception as exc:
+        return (
+            "The failed upload could not be checked for safe cleanup and was left on disk: "
+            f"{type(exc).__name__}."
+        )
+
+    if persisted is not None:
+        persisted_path = persisted.get("stored_path")
+        if persisted_path:
+            try:
+                if Path(str(persisted_path)).resolve() == stored_path.resolve():
+                    return None
+            except OSError:
+                return "The failed upload path could not be verified and was left on disk."
+
+    try:
+        stored_path.unlink(missing_ok=True)
+    except OSError as exc:
+        return f"The unpersisted upload could not be removed: {type(exc).__name__}."
+    return None
 
 
 def _current_user_id() -> int:

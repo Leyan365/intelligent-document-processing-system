@@ -109,6 +109,21 @@ def parse_query(query: str, known_suppliers: list[str] | None = None) -> ParsedS
             semantic_text = re.sub(pattern, '', semantic_text, flags=re.IGNORECASE)
             break
 
+    # Capture identifiers from the raw query because document-type removal
+    # above intentionally strips prefixes such as "invoice" and "PO".
+    doc_num_match = re.search(
+        r'\b(?:po|invoice|receipt)\s+(?:number\s+)?([A-Za-z]*\d[A-Za-z0-9\-_]*)\b',
+        query,
+        re.IGNORECASE,
+    )
+    if doc_num_match:
+        parsed.document_number = doc_num_match.group(1)
+        identifier_pattern = re.compile(
+            rf'\b(?:number\s+)?{re.escape(parsed.document_number)}\b',
+            re.IGNORECASE,
+        )
+        semantic_text = identifier_pattern.sub('', semantic_text, count=1)
+
     # 2. Dates. Date filters are evaluated before numeric amounts so that a
     # range such as "between 1 January 2026 and 31 January 2026" cannot be
     # mistaken for an amount range.
@@ -210,12 +225,6 @@ def parse_query(query: str, known_suppliers: list[str] | None = None) -> ParsedS
                             if amt is not None:
                                 parsed.amount_eq = amt
                                 semantic_text = semantic_text[:eq_match.start()] + semantic_text[eq_match.end():]
-
-    # Exact document number (e.g., PO 12345, invoice INV-1008)
-    doc_num_match = re.search(r'\b(?:po|invoice|receipt)\s+([A-Za-z0-9\-\_]+)\b', semantic_text, re.IGNORECASE)
-    if doc_num_match:
-        parsed.document_number = doc_num_match.group(1)
-        semantic_text = semantic_text[:doc_num_match.start()] + semantic_text[doc_num_match.end():]
 
     # Supplier exact phrase extraction
     if known_suppliers:

@@ -40,7 +40,6 @@ class LocalTextExtractionLoader(BaseLoader):
         DocumentType.PDF,
         DocumentType.IMAGE,
         DocumentType.TXT,
-        DocumentType.DOCX,
         DocumentType.MD,
         DocumentType.HTML,
         DocumentType.JSON,

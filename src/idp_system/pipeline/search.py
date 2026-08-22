@@ -73,7 +73,12 @@ class SemanticSearchService:
         self.index.add(embeddings)
         self.documents.extend(documents)
 
-    def search(self, query: str, k: int = 5, min_score: float = 0.0) -> list[dict[str, object]]:
+    def search(
+        self,
+        query: str,
+        k: int = 5,
+        min_score: float | None = None,
+    ) -> list[dict[str, object]]:
         """Return top-k semantically similar in-memory documents."""
         if not query or not query.strip():
             raise ValueError("query is required")
@@ -285,7 +290,12 @@ class SemanticSearchService:
             if requires_exact_lexical_match and tier == 5:
                 continue
 
-            if tier == 5 and not has_structured_constraints and score < min_score:
+            if (
+                tier == 5
+                and not has_structured_constraints
+                and min_score is not None
+                and score < min_score
+            ):
                 continue
 
             scored_candidates.append((tier, float(score), doc, int(index)))

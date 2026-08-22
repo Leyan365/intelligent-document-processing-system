@@ -48,5 +48,16 @@ class TestQueryParser(unittest.TestCase):
         incomplete_query = parse_query("after January 2026")
         self.assertIsNotNone(incomplete_query.date_error)
 
+    def test_document_number_is_preserved_after_type_parsing(self):
+        invoice_query = parse_query("invoice 39519 Aaron Bergman")
+        self.assertEqual("invoice", invoice_query.document_type)
+        self.assertEqual("39519", invoice_query.document_number)
+        self.assertEqual("Aaron Bergman", invoice_query.semantic_text)
+
+        po_query = parse_query("PO number 5380034300")
+        self.assertEqual("purchase_order", po_query.document_type)
+        self.assertEqual("5380034300", po_query.document_number)
+        self.assertEqual("", po_query.semantic_text)
+
 if __name__ == '__main__':
     unittest.main()

@@ -21,7 +21,8 @@ AMOUNT_VALUE_PATTERN = (
 )
 
 INVOICE_NUMBER_PATTERN = re.compile(
-    r"\b(?:invoice\s*(?:no|number|#)?|inv)\s*[:#\-]?\s*((?:INV[-\s]?)?\d{3,})\b",
+    r"\b(?:invoice\s*(?:no|number|#)?|inv)\s*[:#\-]?\s*"
+    r"((?:INV[-\s]?\d{2,})|\d{3,})\b",
     re.IGNORECASE,
 )
 GENERIC_NUMBER_PATTERN = re.compile(
@@ -29,6 +30,11 @@ GENERIC_NUMBER_PATTERN = re.compile(
     re.IGNORECASE,
 )
 PO_NUMBER_PATTERNS = (
+    re.compile(
+        r"\bp\.?\s*o\.?\s*(?:no|number)(?:\s*/\s*date\s*/\s*version)?"
+        r"\s*[:#\-]?\s*([A-Z]{0,6}\d{4,}(?:-\d+)?)\b",
+        re.IGNORECASE,
+    ),
     re.compile(r"\bpo\s*number\s*[:#\-]?\s*([A-Z]*\d{4,}(?:-\d+)?)\b", re.IGNORECASE),
     re.compile(r"\border\s+number\s*[:#\-]?\s*((?:PO\s*)?[-#]?\s*\d{3,})\b", re.IGNORECASE),
     re.compile(
@@ -122,6 +128,15 @@ BAD_SUPPLIER_MARKERS = (
     "last modified",
     "phones, technology",
 )
+GENERIC_SUPPLIER_HEADINGS = {
+    "cash",
+    "invoice",
+    "receipt",
+    "sales",
+    "sales receipt",
+    "tax invoice",
+    "total",
+}
 SUPPLIER_STOP_MARKERS = (
     "supplier address",
     "address",
@@ -150,6 +165,18 @@ SUPPLIER_STOP_MARKERS = (
     "order number",
     "order date",
     "po creation date",
+    "currency",
+    "port of discharge",
+    "contact person",
+    "phone no",
+    "manufacturer",
+    "report date",
+    "email",
+    "terms of payment",
+    "your reference",
+    "mode of dispatch",
+    "reference date",
+    "inco terms",
 )
 
 
@@ -406,12 +433,25 @@ def _extract_po_supplier(text: str) -> str | None:
             return value
 
     supplier_match = re.search(
-        r"\bsupplier\s*:\s*(.+?)(?=\s+(?:supplier\s+address|address|contact|fax|vat|delivery\s+address|ship\s+to|buyer|po\s+number|order\s+number)\b|$)",
+        r"\bsupplier\s*:\s*(.+?)(?=\s+(?:supplier\s+address|address|contact|fax|vat|"
+        r"currency|port\s+of\s+discharge|delivery\s+address|ship\s+to|buyer|"
+        r"po\s+number|order\s+number)\b|$)",
         compact_text,
         flags=re.IGNORECASE,
     )
     if supplier_match:
         value = _clean_supplier(supplier_match.group(1))
+        if _is_plausible_supplier(value):
+            return value
+
+    recipient_match = re.search(
+        r"\bto\s*:\s*(.+?)(?=,|\s+(?:tel|fax|currency|address|delivery|buyer|"
+        r"po\s+number|order\s+number)\b|$)",
+        compact_text,
+        flags=re.IGNORECASE,
+    )
+    if recipient_match:
+        value = _clean_supplier(recipient_match.group(1))
         if _is_plausible_supplier(value):
             return value
 
@@ -469,6 +509,9 @@ def _looks_like_bad_supplier(value: str | None) -> bool:
     if not cleaned:
         return True
     lowered = cleaned.lower()
+    normalized_heading = re.sub(r"[^a-z]+", " ", lowered).strip()
+    if normalized_heading in GENERIC_SUPPLIER_HEADINGS:
+        return True
     if any(marker in lowered for marker in BAD_SUPPLIER_MARKERS):
         return True
     if len(cleaned) > 80:
