@@ -1,0 +1,13 @@
+# PIPELINE ROUTING CONFUSION MATRIX (All 42 Documents)
+gold_class \ production_prediction,invoice,receipt,purchase_order,EXTRACTION_FAILED,total_gold
+invoice,18,0,0,0,18
+receipt,12,0,0,3,15
+purchase_order,0,0,9,0,9
+total_predicted,30,0,9,3,42
+
+# CLASSIFIER-ONLY CONFUSION MATRIX (39 Text-Extracted Documents; 3 Preprocessing Failures Excluded)
+gold_class \ classifier_prediction,invoice,receipt,purchase_order,total_gold_evaluated
+invoice,18,0,0,18
+receipt,12,0,0,12
+purchase_order,0,0,9,9
+total_predicted,30,0,9,39

@@ -1,0 +1,180 @@
+{
+  "end_to_end_pipeline_routing": {
+    "description": "Evaluated across all 42 challenge documents; treats text extraction failures as unsuccessful routing outcomes.",
+    "production_pipeline": {
+      "total_evaluated": 42,
+      "accuracy": 0.6429,
+      "macro_avg": {
+        "precision": 0.5333,
+        "recall": 0.6667,
+        "f1_score": 0.5833
+      },
+      "weighted_avg": {
+        "precision": 0.4714,
+        "recall": 0.6429,
+        "f1_score": 0.5357
+      },
+      "per_class": {
+        "invoice": {
+          "precision": 0.6,
+          "recall": 1.0,
+          "f1_score": 0.75,
+          "support": 18,
+          "true_positives": 18,
+          "false_positives": 12,
+          "false_negatives": 0
+        },
+        "receipt": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1_score": 0.0,
+          "support": 15,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 15
+        },
+        "purchase_order": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "support": 9,
+          "true_positives": 9,
+          "false_positives": 0,
+          "false_negatives": 0
+        }
+      }
+    },
+    "raw_model": {
+      "total_evaluated": 42,
+      "accuracy": 0.5714,
+      "macro_avg": {
+        "precision": 0.5161,
+        "recall": 0.5741,
+        "f1_score": 0.523
+      },
+      "weighted_avg": {
+        "precision": 0.4493,
+        "recall": 0.5714,
+        "f1_score": 0.4849
+      },
+      "per_class": {
+        "invoice": {
+          "precision": 0.5484,
+          "recall": 0.9444,
+          "f1_score": 0.6939,
+          "support": 18,
+          "true_positives": 17,
+          "false_positives": 14,
+          "false_negatives": 1
+        },
+        "receipt": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1_score": 0.0,
+          "support": 15,
+          "true_positives": 0,
+          "false_positives": 1,
+          "false_negatives": 15
+        },
+        "purchase_order": {
+          "precision": 1.0,
+          "recall": 0.7778,
+          "f1_score": 0.875,
+          "support": 9,
+          "true_positives": 7,
+          "false_positives": 0,
+          "false_negatives": 2
+        }
+      }
+    }
+  },
+  "classifier_conditional_on_extraction": {
+    "description": "Evaluated across the 39 documents where text extraction succeeded; measures purely classifier decision accuracy.",
+    "production_pipeline": {
+      "total_evaluated": 39,
+      "accuracy": 0.6923,
+      "macro_avg": {
+        "precision": 0.5333,
+        "recall": 0.6667,
+        "f1_score": 0.5833
+      },
+      "weighted_avg": {
+        "precision": 0.5077,
+        "recall": 0.6923,
+        "f1_score": 0.5769
+      },
+      "per_class": {
+        "invoice": {
+          "precision": 0.6,
+          "recall": 1.0,
+          "f1_score": 0.75,
+          "support": 18,
+          "true_positives": 18,
+          "false_positives": 12,
+          "false_negatives": 0
+        },
+        "receipt": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1_score": 0.0,
+          "support": 12,
+          "true_positives": 0,
+          "false_positives": 0,
+          "false_negatives": 12
+        },
+        "purchase_order": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "support": 9,
+          "true_positives": 9,
+          "false_positives": 0,
+          "false_negatives": 0
+        }
+      }
+    },
+    "raw_model": {
+      "total_evaluated": 39,
+      "accuracy": 0.6154,
+      "macro_avg": {
+        "precision": 0.5161,
+        "recall": 0.5741,
+        "f1_score": 0.523
+      },
+      "weighted_avg": {
+        "precision": 0.4839,
+        "recall": 0.6154,
+        "f1_score": 0.5222
+      },
+      "per_class": {
+        "invoice": {
+          "precision": 0.5484,
+          "recall": 0.9444,
+          "f1_score": 0.6939,
+          "support": 18,
+          "true_positives": 17,
+          "false_positives": 14,
+          "false_negatives": 1
+        },
+        "receipt": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1_score": 0.0,
+          "support": 12,
+          "true_positives": 0,
+          "false_positives": 1,
+          "false_negatives": 12
+        },
+        "purchase_order": {
+          "precision": 1.0,
+          "recall": 0.7778,
+          "f1_score": 0.875,
+          "support": 9,
+          "true_positives": 7,
+          "false_positives": 0,
+          "false_negatives": 2
+        }
+      }
+    }
+  }
+}

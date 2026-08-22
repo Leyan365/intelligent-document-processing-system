@@ -1,0 +1,337 @@
+{
+  "evaluation_timestamp_utc": "2026-08-22T17:46:56.624477+00:00",
+  "challenge_manifest_sha256": "9c1d629d9a9c32c85c50da7bdc68e81503061ca8d5caf5b886294959f02a90cc",
+  "total_documents": 42,
+  "processing_success_count": 39,
+  "processing_failure_count": 3,
+  "environment": {
+    "python_version": "3.10.19 | packaged by Anaconda, Inc. | (main, Oct 21 2025, 16:41:31) [MSC v.1929 64 bit (AMD64)]",
+    "sklearn_version": "1.7.2",
+    "model_path": "D:\\Campus\\Degree\\Final Project\\IDP-System\\models\\document_classifier.joblib",
+    "model_steps": [
+      "tfidf",
+      "classifier"
+    ],
+    "classes": [
+      "invoice",
+      "receipt",
+      "purchase_order"
+    ]
+  },
+  "performance": {
+    "end_to_end_pipeline_routing": {
+      "description": "Evaluated across all 42 challenge documents; treats text extraction failures as unsuccessful routing outcomes.",
+      "production_pipeline": {
+        "total_evaluated": 42,
+        "accuracy": 0.6429,
+        "macro_avg": {
+          "precision": 0.5333,
+          "recall": 0.6667,
+          "f1_score": 0.5833
+        },
+        "weighted_avg": {
+          "precision": 0.4714,
+          "recall": 0.6429,
+          "f1_score": 0.5357
+        },
+        "per_class": {
+          "invoice": {
+            "precision": 0.6,
+            "recall": 1.0,
+            "f1_score": 0.75,
+            "support": 18,
+            "true_positives": 18,
+            "false_positives": 12,
+            "false_negatives": 0
+          },
+          "receipt": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1_score": 0.0,
+            "support": 15,
+            "true_positives": 0,
+            "false_positives": 0,
+            "false_negatives": 15
+          },
+          "purchase_order": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1_score": 1.0,
+            "support": 9,
+            "true_positives": 9,
+            "false_positives": 0,
+            "false_negatives": 0
+          }
+        }
+      },
+      "raw_model": {
+        "total_evaluated": 42,
+        "accuracy": 0.5714,
+        "macro_avg": {
+          "precision": 0.5161,
+          "recall": 0.5741,
+          "f1_score": 0.523
+        },
+        "weighted_avg": {
+          "precision": 0.4493,
+          "recall": 0.5714,
+          "f1_score": 0.4849
+        },
+        "per_class": {
+          "invoice": {
+            "precision": 0.5484,
+            "recall": 0.9444,
+            "f1_score": 0.6939,
+            "support": 18,
+            "true_positives": 17,
+            "false_positives": 14,
+            "false_negatives": 1
+          },
+          "receipt": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1_score": 0.0,
+            "support": 15,
+            "true_positives": 0,
+            "false_positives": 1,
+            "false_negatives": 15
+          },
+          "purchase_order": {
+            "precision": 1.0,
+            "recall": 0.7778,
+            "f1_score": 0.875,
+            "support": 9,
+            "true_positives": 7,
+            "false_positives": 0,
+            "false_negatives": 2
+          }
+        }
+      }
+    },
+    "classifier_conditional_on_extraction": {
+      "description": "Evaluated across the 39 documents where text extraction succeeded; measures purely classifier decision accuracy.",
+      "production_pipeline": {
+        "total_evaluated": 39,
+        "accuracy": 0.6923,
+        "macro_avg": {
+          "precision": 0.5333,
+          "recall": 0.6667,
+          "f1_score": 0.5833
+        },
+        "weighted_avg": {
+          "precision": 0.5077,
+          "recall": 0.6923,
+          "f1_score": 0.5769
+        },
+        "per_class": {
+          "invoice": {
+            "precision": 0.6,
+            "recall": 1.0,
+            "f1_score": 0.75,
+            "support": 18,
+            "true_positives": 18,
+            "false_positives": 12,
+            "false_negatives": 0
+          },
+          "receipt": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1_score": 0.0,
+            "support": 12,
+            "true_positives": 0,
+            "false_positives": 0,
+            "false_negatives": 12
+          },
+          "purchase_order": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1_score": 1.0,
+            "support": 9,
+            "true_positives": 9,
+            "false_positives": 0,
+            "false_negatives": 0
+          }
+        }
+      },
+      "raw_model": {
+        "total_evaluated": 39,
+        "accuracy": 0.6154,
+        "macro_avg": {
+          "precision": 0.5161,
+          "recall": 0.5741,
+          "f1_score": 0.523
+        },
+        "weighted_avg": {
+          "precision": 0.4839,
+          "recall": 0.6154,
+          "f1_score": 0.5222
+        },
+        "per_class": {
+          "invoice": {
+            "precision": 0.5484,
+            "recall": 0.9444,
+            "f1_score": 0.6939,
+            "support": 18,
+            "true_positives": 17,
+            "false_positives": 14,
+            "false_negatives": 1
+          },
+          "receipt": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1_score": 0.0,
+            "support": 12,
+            "true_positives": 0,
+            "false_positives": 1,
+            "false_negatives": 12
+          },
+          "purchase_order": {
+            "precision": 1.0,
+            "recall": 0.7778,
+            "f1_score": 0.875,
+            "support": 9,
+            "true_positives": 7,
+            "false_positives": 0,
+            "false_negatives": 2
+          }
+        }
+      }
+    }
+  },
+  "pipeline_routing_confusion_matrix": {
+    "columns": [
+      "invoice",
+      "receipt",
+      "purchase_order",
+      "EXTRACTION_FAILED"
+    ],
+    "rows": {
+      "invoice": {
+        "invoice": 18,
+        "receipt": 0,
+        "purchase_order": 0,
+        "EXTRACTION_FAILED": 0
+      },
+      "receipt": {
+        "invoice": 12,
+        "receipt": 0,
+        "purchase_order": 0,
+        "EXTRACTION_FAILED": 3
+      },
+      "purchase_order": {
+        "invoice": 0,
+        "receipt": 0,
+        "purchase_order": 9,
+        "EXTRACTION_FAILED": 0
+      }
+    },
+    "notes": "Includes all 42 documents across the 3 gold classes and 4 pipeline routing outputs (including 3 EXTRACTION_FAILED)."
+  },
+  "classifier_only_confusion_matrix": {
+    "columns": [
+      "invoice",
+      "receipt",
+      "purchase_order"
+    ],
+    "rows": {
+      "invoice": {
+        "invoice": 18,
+        "receipt": 0,
+        "purchase_order": 0
+      },
+      "receipt": {
+        "invoice": 12,
+        "receipt": 0,
+        "purchase_order": 0
+      },
+      "purchase_order": {
+        "invoice": 0,
+        "receipt": 0,
+        "purchase_order": 9
+      }
+    },
+    "notes": "Excludes the 3 EXTRACTION_FAILED documents (evaluates the 39 successfully text-extracted documents)."
+  },
+  "class_breakdown": {
+    "invoice": {
+      "total": 18,
+      "correct": 18,
+      "accuracy": 1.0
+    },
+    "receipt": {
+      "total": 15,
+      "correct": 0,
+      "accuracy": 0.0,
+      "extraction_failed": 3,
+      "misclassified_as_invoice": 12
+    },
+    "purchase_order": {
+      "total": 9,
+      "correct": 9,
+      "accuracy": 1.0
+    }
+  },
+  "language_breakdown": {
+    "english": {
+      "total": 27,
+      "correct": 27,
+      "accuracy": 1.0
+    },
+    "portuguese": {
+      "total": 15,
+      "correct": 0,
+      "accuracy": 0.0
+    },
+    "confound_note": "Language and document class are perfectly confounded (English: Invoices/POs, Portuguese: Receipts). Language effects cannot be statistically separated from class or modality effects."
+  },
+  "modality_breakdown": {
+    "native_pdf_text": {
+      "total": 27,
+      "correct": 27,
+      "accuracy": 1.0
+    },
+    "ocr_image": {
+      "total": 15,
+      "correct": 0,
+      "accuracy": 0.0,
+      "extraction_success": 12,
+      "extraction_failed": 3
+    },
+    "confound_note": "Modality is perfectly confounded with document class (Native PDF: Invoices/POs, OCR Image: Receipts)."
+  },
+  "confidence_analysis": {
+    "mean_confidence_correct_raw_model": 0.6628,
+    "mean_confidence_incorrect_raw_model": 0.6448,
+    "lowest_confidence_correct_raw_model": 0.4541,
+    "highest_confidence_incorrect_raw_model": 0.8372,
+    "interpretation": "Model confidence did not strongly separate correct from incorrect predictions on this challenge set, and at least one incorrect receipt prediction received high confidence (0.8372). Probabilities should not be treated as calibrated confidence."
+  },
+  "heuristic_effect": {
+    "heuristic_triggered_count": 27,
+    "heuristic_diverged_from_raw_model_count": 3,
+    "corrected_cases": [
+      "FC-INV-001 (raw=receipt -> heur=invoice)",
+      "FC-PO-004 (raw=invoice -> heur=purchase_order)",
+      "FC-PO-005 (raw=invoice -> heur=purchase_order)"
+    ],
+    "portuguese_receipt_heuristic_trigger_count": 0,
+    "reason": "Production heuristics rely exclusively on English regex keywords ('receipt', 'cashier', 'amount paid', 'change')."
+  },
+  "receipt_error_diagnostic_heuristic_categorization": {
+    "methodology": "Rule-based diagnostic keyword heuristic over OCR text snippets",
+    "counts": {
+      "CROSS_LINGUAL_VOCABULARY": 8,
+      "CLASSIFIER_GENERALIZATION": 4,
+      "PROCESSING_FAILURE": 3,
+      "OCR_DEGRADATION": 0,
+      "OTHER": 0
+    },
+    "caveat": "The presence of Portuguese transactional keywords (Fatura Simplificada, Total, IVA, Recibo) demonstrates usable OCR text, but does not isolate vocabulary shift as the sole causal driver due to simultaneous modality and domain confounding."
+  },
+  "accuracy_summary": {
+    "end_to_end_production_routing_accuracy": "27/42 = 64.29%",
+    "classifier_accuracy_conditional_on_successful_extraction": "27/39 = 69.23%",
+    "end_to_end_raw_model_routing_accuracy": "24/42 = 57.14%",
+    "raw_model_accuracy_conditional_on_successful_extraction": "24/39 = 61.54%"
+  }
+}
