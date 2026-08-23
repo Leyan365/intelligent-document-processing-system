@@ -1,0 +1,229 @@
+{
+  "benchmark_metadata": {
+    "manifest_frozen": true,
+    "git_commit": "29c7f7ffad8b101a9918c8ccceb9d5b553c55cad",
+    "evaluation_timestamp_utc": "2026-08-23T15:39:54.693593+00:00",
+    "total_queries": 19,
+    "scored_queries": 18,
+    "no_match_queries": 1,
+    "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+    "embedding_dimension": 384,
+    "faiss_index_type": "IndexFlatIP",
+    "k_values": [
+      1,
+      3,
+      5
+    ]
+  },
+  "overall": {
+    "k1": {
+      "k": 1,
+      "precision": 0.9444,
+      "recall": 0.5926,
+      "mrr": 0.9444,
+      "ndcg": 0.9444
+    },
+    "k3": {
+      "k": 3,
+      "precision": 0.4815,
+      "recall": 0.8333,
+      "mrr": 0.9722,
+      "ndcg": 0.9493
+    },
+    "k5": {
+      "k": 5,
+      "precision": 0.3222,
+      "recall": 0.8796,
+      "mrr": 0.9722,
+      "ndcg": 0.9574
+    }
+  },
+  "semantic_only": {
+    "k1": {
+      "k": 1,
+      "precision": 0.8333,
+      "recall": 0.5278,
+      "mrr": 0.8333,
+      "ndcg": 0.8333
+    },
+    "k3": {
+      "k": 3,
+      "precision": 0.5,
+      "recall": 0.8333,
+      "mrr": 0.9167,
+      "ndcg": 0.903
+    },
+    "k5": {
+      "k": 5,
+      "precision": 0.4,
+      "recall": 0.9722,
+      "mrr": 0.9167,
+      "ndcg": 0.9272
+    }
+  },
+  "by_category": {
+    "amount": {
+      "query_count": 1,
+      "metrics": {
+        "k1": {
+          "k": 1,
+          "precision": 1.0,
+          "recall": 1.0,
+          "mrr": 1.0,
+          "ndcg": 1.0
+        },
+        "k3": {
+          "k": 3,
+          "precision": 0.3333,
+          "recall": 1.0,
+          "mrr": 1.0,
+          "ndcg": 1.0
+        },
+        "k5": {
+          "k": 5,
+          "precision": 0.2,
+          "recall": 1.0,
+          "mrr": 1.0,
+          "ndcg": 1.0
+        }
+      }
+    },
+    "date": {
+      "query_count": 1,
+      "metrics": {
+        "k1": {
+          "k": 1,
+          "precision": 1.0,
+          "recall": 0.5,
+          "mrr": 1.0,
+          "ndcg": 1.0
+        },
+        "k3": {
+          "k": 3,
+          "precision": 0.6667,
+          "recall": 1.0,
+          "mrr": 1.0,
+          "ndcg": 1.0
+        },
+        "k5": {
+          "k": 5,
+          "precision": 0.4,
+          "recall": 1.0,
+          "mrr": 1.0,
+          "ndcg": 1.0
+        }
+      }
+    },
+    "exact_entity": {
+      "query_count": 3,
+      "metrics": {
+        "k1": {
+          "k": 1,
+          "precision": 1.0,
+          "recall": 0.5,
+          "mrr": 1.0,
+          "ndcg": 1.0
+        },
+        "k3": {
+          "k": 3,
+          "precision": 0.5556,
+          "recall": 0.8333,
+          "mrr": 1.0,
+          "ndcg": 0.9724
+        },
+        "k5": {
+          "k": 5,
+          "precision": 0.3333,
+          "recall": 0.8333,
+          "mrr": 1.0,
+          "ndcg": 0.9724
+        }
+      }
+    },
+    "identifier": {
+      "query_count": 3,
+      "metrics": {
+        "k1": {
+          "k": 1,
+          "precision": 1.0,
+          "recall": 0.5,
+          "mrr": 1.0,
+          "ndcg": 1.0
+        },
+        "k3": {
+          "k": 3,
+          "precision": 0.3333,
+          "recall": 0.5,
+          "mrr": 1.0,
+          "ndcg": 0.9173
+        },
+        "k5": {
+          "k": 5,
+          "precision": 0.2,
+          "recall": 0.5,
+          "mrr": 1.0,
+          "ndcg": 0.9173
+        }
+      }
+    },
+    "semantic_only": {
+      "query_count": 6,
+      "metrics": {
+        "k1": {
+          "k": 1,
+          "precision": 0.8333,
+          "recall": 0.5278,
+          "mrr": 0.8333,
+          "ndcg": 0.8333
+        },
+        "k3": {
+          "k": 3,
+          "precision": 0.5,
+          "recall": 0.8333,
+          "mrr": 0.9167,
+          "ndcg": 0.903
+        },
+        "k5": {
+          "k": 5,
+          "precision": 0.4,
+          "recall": 0.9722,
+          "mrr": 0.9167,
+          "ndcg": 0.9272
+        }
+      }
+    },
+    "structured_hybrid": {
+      "query_count": 4,
+      "metrics": {
+        "k1": {
+          "k": 1,
+          "precision": 1.0,
+          "recall": 0.75,
+          "mrr": 1.0,
+          "ndcg": 1.0
+        },
+        "k3": {
+          "k": 3,
+          "precision": 0.5,
+          "recall": 1.0,
+          "mrr": 1.0,
+          "ndcg": 1.0
+        },
+        "k5": {
+          "k": 5,
+          "precision": 0.3,
+          "recall": 1.0,
+          "mrr": 1.0,
+          "ndcg": 1.0
+        }
+      }
+    }
+  },
+  "no_match": {
+    "query": "purchase orders over 999999",
+    "total": 1,
+    "correct": 1,
+    "accuracy": 1.0,
+    "status": "PASS"
+  }
+}

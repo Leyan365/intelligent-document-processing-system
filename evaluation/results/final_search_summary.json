@@ -1,0 +1,175 @@
+{
+  "evaluation_timestamp_utc": "2026-08-23T15:39:54.715981+00:00",
+  "git_commit": "29c7f7ffad8b101a9918c8ccceb9d5b553c55cad",
+  "benchmark_freeze_status": "FROZEN_19_QUERY_BENCHMARK",
+  "environment": {
+    "python_version": "3.10.19 | packaged by Anaconda, Inc. | (main, Oct 21 2025, 16:41:31) [MSC v.1929 64 bit (AMD64)]",
+    "platform": "Windows-10-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 186 Stepping 2, GenuineIntel",
+    "embedding_backend": "sentence-transformers/all-MiniLM-L6-v2",
+    "search_backend": "faiss IndexFlatIP",
+    "sentence_transformers_version": "5.4.1",
+    "faiss_version": "1.13.2",
+    "torch_version": "2.11.0+cpu",
+    "numpy_version": "1.26.4"
+  },
+  "corpus_summary": {
+    "size": 6,
+    "documents": [
+      {
+        "id": "invoice_superstore_39519",
+        "type": "invoice",
+        "supplier": "SuperStore",
+        "amount": "$22.17",
+        "date": "2012-10-23",
+        "filename": "superstore-invoice-39519.pdf"
+      },
+      {
+        "id": "invoice_superstore_6817",
+        "type": "invoice",
+        "supplier": "SuperStore",
+        "amount": "$10,672.30",
+        "date": "2012-10-23",
+        "filename": "superstore-invoice-6817.pdf"
+      },
+      {
+        "id": "receipt_quantum_logic_100",
+        "type": "receipt",
+        "supplier": "Quantum Logic Solutions",
+        "amount": "Rs. 13,500.00",
+        "date": "2026-05-07",
+        "filename": "quantum-logic-receipt-100.pdf"
+      },
+      {
+        "id": "receipt_aeon_20180314",
+        "type": "receipt",
+        "supplier": "AEON",
+        "amount": "42.80",
+        "date": "2018-02-14",
+        "filename": "aeon-receipt-20180314.pdf"
+      },
+      {
+        "id": "po_screenline_5380034300",
+        "type": "purchase_order",
+        "supplier": "SCREENLINE (PVT) LTD",
+        "amount": "5,746.60",
+        "date": "2026-01-25",
+        "filename": "PO.5380034300.pdf"
+      },
+      {
+        "id": "po_screenline_5380034370",
+        "type": "purchase_order",
+        "supplier": "SCREENLINE (PVT) LTD",
+        "amount": "17.52",
+        "date": "2026-01-25",
+        "filename": "PO.5380034370.pdf"
+      }
+    ]
+  },
+  "benchmark_summary": {
+    "total_queries": 19,
+    "scored_queries": 18,
+    "no_match_queries": 1,
+    "k_values": [
+      1,
+      3,
+      5
+    ],
+    "top_k": 5,
+    "category_distribution": {
+      "structured_hybrid": 4,
+      "identifier": 3,
+      "exact_entity": 3,
+      "semantic_only": 6,
+      "amount": 1,
+      "date": 1,
+      "no_match": 1
+    }
+  },
+  "headline_metrics": {
+    "overall": {
+      "K=1": {
+        "precision": 0.9444,
+        "recall": 0.5926,
+        "mrr": 0.9444,
+        "ndcg": 0.9444
+      },
+      "K=3": {
+        "precision": 0.4815,
+        "recall": 0.8333,
+        "mrr": 0.9722,
+        "ndcg": 0.9493
+      },
+      "K=5": {
+        "precision": 0.3222,
+        "recall": 0.8796,
+        "mrr": 0.9722,
+        "ndcg": 0.9574
+      }
+    },
+    "semantic_only": {
+      "K=1": {
+        "precision": 0.8333,
+        "recall": 0.5278,
+        "mrr": 0.8333,
+        "ndcg": 0.8333
+      },
+      "K=3": {
+        "precision": 0.5,
+        "recall": 0.8333,
+        "mrr": 0.9167,
+        "ndcg": 0.903
+      },
+      "K=5": {
+        "precision": 0.4,
+        "recall": 0.9722,
+        "mrr": 0.9167,
+        "ndcg": 0.9272
+      }
+    },
+    "no_match_accuracy": "1/1"
+  },
+  "weak_queries": [
+    {
+      "query": "invoice 39519 Aaron Bergman",
+      "category": "identifier",
+      "recall_at_max_k": 0.5,
+      "rr_at_max_k": 1.0,
+      "ndcg_at_max_k": 0.9173
+    },
+    {
+      "query": "invoice 6817 Aaron Hawkins",
+      "category": "identifier",
+      "recall_at_max_k": 0.5,
+      "rr_at_max_k": 1.0,
+      "ndcg_at_max_k": 0.9173
+    },
+    {
+      "query": "AEON receipt paid by cash GST",
+      "category": "exact_entity",
+      "recall_at_max_k": 0.5,
+      "rr_at_max_k": 1.0,
+      "ndcg_at_max_k": 0.9173
+    },
+    {
+      "query": "PO number 5380034300",
+      "category": "identifier",
+      "recall_at_max_k": 0.5,
+      "rr_at_max_k": 1.0,
+      "ndcg_at_max_k": 0.9173
+    },
+    {
+      "query": "items shipped to a customer",
+      "category": "semantic_only",
+      "recall_at_max_k": 1.0,
+      "rr_at_max_k": 0.5,
+      "ndcg_at_max_k": 0.6309
+    }
+  ],
+  "methodological_notes": {
+    "mrr_definition": "MRR@K is evaluated per cutoff K as the mean across scored queries of 1/rank for the first relevant document appearing in the top K results (or 0.0 if no relevant document appears within rank K).",
+    "ndcg_definition": "NDCG@K uses exponential graded relevance gains ((2^rel) - 1) discounted by log2(rank + 1), normalized against the ideal DCG (IDCG@K).",
+    "precision_recall_dynamics": "Precision naturally decreases as K increases (from 0.9444 at K=1 to 0.3222 at K=5) because most queries target only 1 or 2 gold relevant documents in the 6-document corpus, while Recall rises monotonically (from 0.5926 to 0.8796).",
+    "small_sample_disclaimer": "The benchmark comprises 19 curated queries over a 6-document business corpus with manually defined graded relevance judgments. High aggregate metrics reflect the joint efficacy of structured query routing, exact lexical matching, and dense MiniLM embeddings; they should not be generalized to unbounded or enterprise-scale unstructured collections."
+  }
+}
