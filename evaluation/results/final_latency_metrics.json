@@ -1,0 +1,273 @@
+{
+  "evaluation_name": "Final CPU Latency Evaluation",
+  "benchmark_manifest": {
+    "path": "D:\\Campus\\Degree\\Final Project\\IDP-System\\evaluation\\final_latency_benchmark.csv",
+    "sha256": "eafefb33c3f464613b27ee55c7612c34d0acda16bb303b3b8865dc96fca884d5",
+    "total_documents": 29,
+    "native_pdf_count": 19,
+    "ocr_image_count": 10,
+    "invoice_count": 10,
+    "purchase_order_count": 9,
+    "receipt_count": 10,
+    "repetition_policy": "Native PDF: 3 measured repetitions per document; OCR Receipt: 1 measured repetition per document",
+    "total_measured_runs": 67,
+    "successful_measured_runs": 66,
+    "successful_documents_count": 28,
+    "failed_documents_count": 1
+  },
+  "environment": {
+    "python_version": "3.10.19",
+    "os": "Windows-10-10.0.26200-SP0",
+    "cpu_model": "13th Gen Intel(R) Core(TM) i5-13420H",
+    "physical_cores": 8,
+    "logical_cores": 12,
+    "total_ram_gb": 15.67,
+    "available_ram_gb": 5.07,
+    "power_status": "Battery (52%)",
+    "scikit_learn_version": "1.7.2",
+    "pymupdf_version": "1.26.7",
+    "paddleocr_version": "3.5.0",
+    "paddlepaddle_version": "3.2.0",
+    "sentence_transformers_version": "5.4.1",
+    "faiss_version": "1.13.2",
+    "numpy_version": "1.26.4",
+    "opencv_version": "4.10.0",
+    "paddle_device": "cpu",
+    "paddle_cuda_compiled": false,
+    "gpu_acceleration": "None (strictly CPU-only)",
+    "git_commit": "43c0a8c7c73d5b9de07e07b2c6b3119cd8a62c5a"
+  },
+  "resource_observations": {
+    "initial_rss_mb": 588.68,
+    "peak_rss_mb": 1300.85,
+    "peak_wset_mb": 8076.94,
+    "private_mem_mb": 15048.62,
+    "initial_cpu_utilization_pct": 20.2,
+    "final_cpu_utilization_pct": 18.0,
+    "memory_measurement_note": "Initial RSS, peak RSS, peak working set, and private memory are descriptive process-level observations captured at different points during the run; they do not constitute a controlled leak test."
+  },
+  "cold_start": {
+    "cold_native_pdf": {
+      "latency_id": "LAT-INV-001",
+      "filename": "invoice_Amy Hunt_37363.pdf",
+      "cold_total_time_s": 5.5665,
+      "load_time_s": 0.0332,
+      "classification_time_s": 0.0001,
+      "field_extraction_time_s": 2.5755,
+      "validation_time_s": 0.0005,
+      "embedding_time_s": 2.9567,
+      "index_time_s": 0.0003,
+      "same_document_steady_mean_s": 0.1061,
+      "same_document_initialization_overhead_s": 5.4603,
+      "same_document_cold_factor": 52.46,
+      "whole_modality_steady_mean_s": 0.425033,
+      "whole_modality_initialization_overhead_s": 5.1414
+    },
+    "cold_ocr_receipt": {
+      "latency_id": "LAT-REC-001",
+      "filename": "20210323_181451.jpg",
+      "cold_total_time_s": 237.212,
+      "load_time_s": 0.0998,
+      "preprocess_time_s": 0.1679,
+      "ocr_time_s": 236.0993,
+      "classification_time_s": 0.0221,
+      "field_extraction_time_s": 0.1706,
+      "validation_time_s": 0.0009,
+      "embedding_time_s": 0.501,
+      "index_time_s": 0.0035,
+      "same_document_steady_mean_s": 75.3861,
+      "same_document_initialization_overhead_s": 161.8259,
+      "same_document_cold_factor": 3.15,
+      "whole_modality_steady_mean_s": 133.894816,
+      "whole_modality_initialization_overhead_s": 103.3172
+    }
+  },
+  "document_balanced_steady_state_metrics": {
+    "description": "Statistics computed across per-document mean latencies (1 value per successful document, N=28 docs). Preferred headline metric to avoid repetition bias.",
+    "overall": {
+      "n": 28,
+      "mean": 43.326035,
+      "median": 0.333103,
+      "std": 136.399499,
+      "min": 0.106117,
+      "max": 725.029348,
+      "p90": 68.158663,
+      "p95": 75.386089,
+      "iqr": 53.916113
+    },
+    "native_pdf_text": {
+      "n": 19,
+      "mean": 0.425033,
+      "median": 0.248025,
+      "std": 0.494435,
+      "min": 0.106117,
+      "max": 1.788376,
+      "p90": 1.400238,
+      "p95": 1.788376,
+      "iqr": 0.188374
+    },
+    "ocr_image": {
+      "n": 9,
+      "mean": 133.894816,
+      "median": 57.640071,
+      "std": 221.791588,
+      "min": 54.077493,
+      "max": 725.029348,
+      "p90": 725.029348,
+      "p95": 725.029348,
+      "iqr": 12.79975
+    },
+    "by_class": {
+      "invoice": {
+        "n": 10,
+        "mean": 0.161723,
+        "median": 0.153962,
+        "std": 0.039289,
+        "min": 0.106117,
+        "max": 0.248025,
+        "p90": 0.197444,
+        "p95": 0.248025,
+        "iqr": 0.038098
+      },
+      "purchase_order": {
+        "n": 9,
+        "mean": 0.7176,
+        "median": 0.336674,
+        "std": 0.604444,
+        "min": 0.251437,
+        "max": 1.788376,
+        "p90": 1.788376,
+        "p95": 1.788376,
+        "iqr": 1.026057
+      },
+      "receipt": {
+        "n": 9,
+        "mean": 133.894816,
+        "median": 57.640071,
+        "std": 221.791588,
+        "min": 54.077493,
+        "max": 725.029348,
+        "p90": 725.029348,
+        "p95": 725.029348,
+        "iqr": 12.79975
+      }
+    }
+  },
+  "run_weighted_steady_state_metrics": {
+    "description": "Statistics computed across all successful measured runs (N=66 runs; 57 native runs + 9 OCR runs).",
+    "overall": {
+      "n": 66,
+      "mean": 18.625458,
+      "median": 0.284597,
+      "std": 90.469759,
+      "min": 0.071431,
+      "max": 725.029348,
+      "p90": 55.358913,
+      "p95": 58.208162,
+      "iqr": 0.996446
+    },
+    "native_pdf_text": {
+      "n": 57,
+      "mean": 0.425033,
+      "median": 0.228263,
+      "std": 0.494121,
+      "min": 0.071431,
+      "max": 1.914904,
+      "p90": 1.335747,
+      "p95": 1.794215,
+      "iqr": 0.202464
+    },
+    "ocr_image": {
+      "n": 9,
+      "mean": 133.894816,
+      "median": 57.640071,
+      "std": 221.791588,
+      "min": 54.077493,
+      "max": 725.029348,
+      "p90": 725.029348,
+      "p95": 725.029348,
+      "iqr": 12.79975
+    }
+  },
+  "modality_comparison": {
+    "ocr_to_native_mean_ratio": 315.02,
+    "ocr_to_native_median_ratio": 232.4,
+    "interpretation_statement": "OCR documents required approximately 315.02 times the processing time of native-text documents in this benchmark (median ratio: 232.4x)."
+  },
+  "stage_level_analysis": {
+    "native_text": {
+      "stage_mean_seconds": {
+        "load_time_s": 0.029219,
+        "text_extraction_time_s": 0.000301,
+        "classification_time_s": 0.000229,
+        "field_extraction_time_s": 0.291562,
+        "validation_time_s": 0.001645,
+        "embedding_time_s": 0.101881,
+        "index_time_s": 6.4e-05,
+        "total_time_s": 0.425033
+      },
+      "stage_percentages": {
+        "load_time_s": 6.87,
+        "text_extraction_time_s": 0.07,
+        "classification_time_s": 0.05,
+        "field_extraction_time_s": 68.6,
+        "validation_time_s": 0.39,
+        "embedding_time_s": 23.97,
+        "index_time_s": 0.02
+      },
+      "downstream_stages_mean_seconds": 0.395381,
+      "dominant_stage": {
+        "stage": "field_extraction_time_s",
+        "mean_seconds": 0.291562,
+        "percentage": 68.6
+      }
+    },
+    "ocr_image": {
+      "stage_mean_seconds": {
+        "load_time_s": 0.117315,
+        "preprocess_time_s": 0.2046,
+        "ocr_inference_time_s": 133.099097,
+        "text_assembly_time_s": 0.000198,
+        "classification_time_s": 0.006524,
+        "field_extraction_time_s": 0.126715,
+        "validation_time_s": 0.000817,
+        "embedding_time_s": 0.222146,
+        "index_time_s": 0.000137,
+        "total_time_s": 133.894816
+      },
+      "stage_percentages": {
+        "load_time_s": 0.09,
+        "preprocess_time_s": 0.15,
+        "ocr_inference_time_s": 99.41,
+        "text_assembly_time_s": 0.0,
+        "classification_time_s": 0.0,
+        "field_extraction_time_s": 0.09,
+        "validation_time_s": 0.0,
+        "embedding_time_s": 0.17,
+        "index_time_s": 0.0
+      },
+      "downstream_stages_mean_seconds": 0.356338,
+      "dominant_stage": {
+        "stage": "ocr_inference_time_s",
+        "mean_seconds": 133.099097,
+        "percentage": 99.41
+      }
+    }
+  },
+  "faiss_index_details": {
+    "latency_harness_evaluated": "IndexFlatL2 (local harness timing; production pipeline uses IndexFlatIP with normalized embeddings)",
+    "production_search_index": "IndexFlatIP",
+    "timing_impact": "Vector index insertion required ~0.000064s for native PDFs and ~0.000137s for OCR receipts (<=0.02% of runtime); index type difference has negligible effect on end-to-end conclusions."
+  },
+  "processing_failures": {
+    "failed_document_count": 1,
+    "failures": [
+      {
+        "latency_id": "LAT-REC-007",
+        "filename": "20210323_170725.jpg",
+        "run_number": 1,
+        "error": "RuntimeError: Unknown exception"
+      }
+    ]
+  }
+}
