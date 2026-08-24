@@ -26,7 +26,7 @@ Every core functional requirement has been implemented, with dedicated evaluatio
 | **7** | **Data Storage & Persistence** | Relational Database (MySQL) for metadata, classification, and extracted fields | **Implemented (SQLite, Portable Schema)** | `database/` (Phase 15/16): SQLite persistence (`data/app/idp_app.db`) tracking `users`, `auth_sessions`, `documents`, `classifications`, `extracted_fields`, `validation_results`, and SHA-256 file hashes. Schema is designed to facilitate future MySQL migration. |
 | **8** | **Semantic Search** | Embeddings (Sentence-BERT or BGE-M3) + FAISS index; natural language document retrieval | **Implemented & Enhanced** | `embeddings.py` + `search.py`: `sentence-transformers/all-MiniLM-L6-v2` generating 384-d normalized embeddings + FAISS `IndexFlatIP` (cosine similarity); structured document search context blocks; in-memory query engine with offline fallback. |
 | **9** | **User Interface** | Web application with Flask backend and Streamlit dashboard | **Implemented (Streamlit-First)** | `ui/streamlit_app.py`: Integrated Streamlit application covering Authentication, Document Ingestion, Live Processing Stages, Interactive Field Editing, Validation Confidence Matrix, Semantic Search, and Document History. |
-| **10** | **Evaluation & Benchmarking** | Basic accuracy, F1-score, precision, recall, relevance check | **Frameworks Implemented** | Full evaluation suite (`evaluation/`): Classification F1/Confusion Matrix, Information Extraction accuracy, Mathematical IR metrics (MRR@K, NDCG@K, Precision@K, Recall@K), CPU Stage-by-Stage Latency Profiler, and Layout-Aware comparison. |
+| **10** | **Evaluation & Benchmarking** | Basic accuracy, F1-score, precision, recall, relevance check | **Frameworks Implemented & Evaluated** | Full evaluation suite (`evaluation/`): Classification F1/Confusion Matrix, Information Extraction accuracy, Mathematical IR metrics (MRR@K, NDCG@K, Precision@K, Recall@K), CPU Stage-by-Stage Latency Profiler, Layout-Aware comparison, and four frozen final benchmark evaluation reports. |
 
 ---
 
@@ -213,7 +213,7 @@ To maintain honest academic rigor for dissertation reporting, the following know
 3. **In-Memory Search Vectors**: Semantic search embeddings are indexed in memory and rebuilt from persisted SQLite records on startup rather than being stored in a dedicated vector database.
 4. **Advisory-Only Validation**: The validation boundary provides warnings and confidence scoring but is advisory and does not hard-block downstream pipeline execution.
 5. **Academic Prototype Authentication**: Password hashing and session cookies follow sound cryptographic principles but represent a local academic prototype without multi-factor authentication or role-based access control.
-6. **Empirical Rerun Tasks**: While evaluation frameworks (MRR/NDCG, CPU latency profiler, layout-aware classifier) are fully implemented, final empirical rerun sweeps in the complete dependency environment remain for dissertation data collection.
+6. **Completed Empirical Benchmarks**: All four target empirical evaluations (Frozen V2 Extraction Benchmark, 42-document Classifier Challenge V2, CPU Latency Profiler, and 19-query Hybrid/Semantic Retrieval) have been executed, verified, and frozen under `evaluation/FINAL_*.md`.
 
 ---
 
@@ -224,7 +224,7 @@ To maintain honest academic rigor for dissertation reporting, the following know
 * [x] **Machine Learning Models**: Trained three-class document classifier (`document_classifier.joblib`) and normalized embedding service.
 * [x] **Relational Persistence**: Functional multi-table relational schema with duplicate detection and user isolation.
 * [x] **Semantic Search**: FAISS vector search over structured document representations.
-* [x] **Academic Evaluation Frameworks**: Evaluation suite covering Classification F1/Confusion Matrices, Search IR metrics (MRR/NDCG), CPU Latency benchmarks, and Layout-Aware experiments.
+* [x] **Academic Evaluation Frameworks & Results**: Full empirical evaluation suite with frozen manifests and verified result reports covering Information Extraction V2 (`FINAL_EXTRACTION_RESULTS.md`), Three-Class Classifier Challenge V2 (`FINAL_CLASSIFIER_RESULTS.md`), CPU Latency (`FINAL_LATENCY_RESULTS.md`), and Semantic Search IR (`FINAL_SEARCH_RESULTS.md`).
 
 ---
 *Report synchronized for the Intelligent Document Processing (IDP) System repository.*

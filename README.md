@@ -6,7 +6,7 @@ classifies document type, extracts key fields, validates pipeline reliability,
 indexes processed documents for semantic search, and displays results through a
 Streamlit interface.
 
-The core IDP pipeline, authentication, persistence, semantic search, evaluation framework, and polished review UI are implemented. The remaining work focuses on final real-environment evaluation reruns, screenshots, dissertation/report writing, and presentation preparation.
+The core IDP pipeline, authentication, persistence, hybrid semantic search, polished review UI, and all four formal empirical evaluation benchmarks are fully implemented and frozen. The project is currently focused on final dissertation/report writing, screenshots, reproducibility checks, and presentation preparation.
 
 ## Current Features
 
@@ -29,6 +29,7 @@ Completed pipeline and evaluation features:
 - CPU latency benchmark framework for stage-level runtime measurement.
 - Layout-aware classification comparison using lightweight text-structure
   features.
+- Four complete empirical evaluation reports for extraction, classifier challenge, latency, and semantic search.
 - Local Streamlit application for upload, processing, result review, search,
   and processing history.
 
@@ -38,8 +39,8 @@ Completed application and persistence features:
 - Database-backed opaque authentication sessions and persistent browser cookies.
 - Persistent SQLite storage for processed document records and validation results.
 - Per-user duplicate upload protection using SHA-256 file hashing.
-- Document preview, original-file download, and persistent document review workflow.
-- Per-user document history and isolated search index reconstruction.
+- Browser-safe fullscreen document preview, original-file download, and persistent document review workflow.
+- Per-user paginated document history and isolated search index reconstruction.
 
 ## Pipeline Summary
 
@@ -105,7 +106,15 @@ evaluation/
   search_eval.py
   latency_eval.py
   layout_feature_eval.py
+  final_classifier_eval.py
+  final_extraction_eval.py
+  final_latency_eval.py
   utils.py
+  FINAL_CLASSIFIER_RESULTS.md
+  FINAL_EXTRACTION_BENCHMARK.md
+  FINAL_EXTRACTION_RESULTS.md
+  FINAL_LATENCY_RESULTS.md
+  FINAL_SEARCH_RESULTS.md
 ```
 
 Legacy migration code remains under `src/training_data_bot/`, but the active IDP
@@ -188,13 +197,11 @@ $env:PYTHONPATH='src'; python evaluation/latency_eval.py
 $env:PYTHONPATH='src'; python evaluation/layout_feature_eval.py
 ```
 
-`search_eval.py` defaults to the production
-`sentence-transformers/all-MiniLM-L6-v2` plus FAISS path and reports semantic,
-entity, identifier, amount, date, mixed hybrid, and no-match categories. Use
-`--embedding-backend deterministic` only for offline evaluator testing; those
-metrics are labelled fallback/test-only. The current 19-query corpus includes
-six semantic-only queries and remains a controlled regression benchmark that
-should be expanded before final claims.
+The completed final evaluation reports and their execution commands are documented in:
+- [FINAL_EXTRACTION_RESULTS.md](file:///d:/Campus/Degree/Final%20Project/IDP-System/evaluation/FINAL_EXTRACTION_RESULTS.md)
+- [FINAL_CLASSIFIER_RESULTS.md](file:///d:/Campus/Degree/Final%20Project/IDP-System/evaluation/FINAL_CLASSIFIER_RESULTS.md)
+- [FINAL_LATENCY_RESULTS.md](file:///d:/Campus/Degree/Final%20Project/IDP-System/evaluation/FINAL_LATENCY_RESULTS.md)
+- [FINAL_SEARCH_RESULTS.md](file:///d:/Campus/Degree/Final%20Project/IDP-System/evaluation/FINAL_SEARCH_RESULTS.md)
 
 ## Dataset Building
 
@@ -263,19 +270,15 @@ temporary uploads outside version control.
 ## Current Limitations
 
 - Authentication is implemented as a local SQLite-backed academic prototype.
-- Semantic search embeddings are still in-memory and rebuilt from persisted
+- Semantic search embeddings are in-memory and rebuilt from persisted
   documents after app restart.
-- Hybrid search handles strict numeric inequalities reliably, but pure semantic queries without numeric operators rely on a conservative zero-score threshold.
 - Validation is advisory only; it flags low-confidence or suspicious outputs but
   does not block downstream processing.
-- The trained classifier reports perfect validation accuracy on the current
-  local split, but that result should be treated cautiously because document
-  classes come from different source domains.
+- The classifier reports high accuracy on development data (~100%), but testing against the 42-document challenge set showed significant drop on out-of-domain Portuguese scanned receipts due to confounded language, modality, and domain shifts.
 - Purchase order training data is much smaller than receipt training data.
-- RVL-CDIP invoice samples depend on OCR quality and can be noisy.
-- Semantic search, latency, and layout-aware evaluation frameworks are
-  implemented, but final reruns should be performed in the full production
-  dependency environment with real representative files.
+- Extraction rules rely on explicit layout anchors, with lower accuracy on complex multi-line purchase orders and degraded OCR scans.
+- High-resolution image OCR is CPU-intensive and constitutes the primary latency bottleneck.
+- All four empirical evaluation benchmarks (extraction, classifier challenge, latency, and semantic search) are complete and documented in `evaluation/FINAL_*.md`.
 
 ## Changes From Original Proposal
 
@@ -293,15 +296,11 @@ temporary uploads outside version control.
   lightweight, CPU-friendly embedding inference on standard personal computers.
 - Additional academic evaluation frameworks were introduced beyond the original
   proposal: advisory validation boundary, MRR/NDCG retrieval evaluation,
-  stage-level CPU latency benchmarking, and layout-aware classification comparison.
+  stage-level CPU latency benchmarking, layout-aware classification comparison,
+  and four frozen final evaluation benchmarks.
 
-## Remaining Development / Evaluation Work
+## Remaining Work
 
-- Development tuning and quality improvements where academically justified.
-- Final production-environment semantic-search evaluation reruns with real embeddings.
-- Expand the controlled search benchmark beyond its current 19 queries for
-  stronger final dissertation evidence.
-- Final real-document latency benchmark measurements in the full dependency environment.
-- Dataset and generalization improvements if feasible.
-- Final screenshots and reproducibility checks.
-- Dissertation/report writing and final presentation preparation.
+- Final dissertation and report writing.
+- Capturing final application screenshots and UI walkthrough assets.
+- Final presentation preparation and reproducibility checks.
