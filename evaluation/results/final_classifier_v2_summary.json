@@ -7,7 +7,7 @@
   "environment": {
     "python_version": "3.10.19 | packaged by Anaconda, Inc. | (main, Oct 21 2025, 16:41:31) [MSC v.1929 64 bit (AMD64)]",
     "sklearn_version": "1.7.2",
-    "model_path": "D:\\Campus\\Degree\\Final Project\\IDP-System\\models\\document_classifier.joblib",
+    "model_path": "models/document_classifier.joblib",
     "model_steps": [
       "tfidf",
       "classifier"

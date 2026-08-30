@@ -2,21 +2,29 @@
 .vscode/
 .env
 venv/
+.venv/
 
-# Python
+# Internal / Working drafts
+.codex-work/
+
+# Python & Testing
 __pycache__/
 *.pyc
+.pytest_cache/
+pytest-cache-files-*/
 
-# Data / artifacts
+# Data / artifacts / temp
 *.db
 *.log
+tmp/
+temp_uploads/
+data/
 
-# Local test files
+# Local test files & models
 sample.pdf
-
 models/
 *.joblib
 
-temp_uploads/
-
-data/
+# OS metadata
+.DS_Store
+Thumbs.db

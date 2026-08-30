@@ -1,7 +1,7 @@
 {
   "evaluation_name": "Final CPU Latency Evaluation",
   "benchmark_manifest": {
-    "path": "D:\\Campus\\Degree\\Final Project\\IDP-System\\evaluation\\final_latency_benchmark.csv",
+    "path": "evaluation/final_latency_benchmark.csv",
     "sha256": "eafefb33c3f464613b27ee55c7612c34d0acda16bb303b3b8865dc96fca884d5",
     "total_documents": 29,
     "native_pdf_count": 19,
